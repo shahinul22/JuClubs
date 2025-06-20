@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard | JU Clubs{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow">
+  <h1 class="text-3xl font-bold mb-4">Welcome, {{ logged_user.full_name|default:logged_user.user_username }}!</h1>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+    <div class="card bg-base-100 shadow-md p-4">
+      <h2 class="text-xl font-semibold mb-2">Your Profile</h2>
+      <ul class="text-sm space-y-1">
+        <li><strong>Username:</strong> {{ logged_user.user_username }}</li>
+        <li><strong>Email:</strong> {{ logged_user.email }}</li>
+        <li><strong>Batch:</strong> {{ logged_user.batch }}</li>
+        <li><strong>Session:</strong> {{ logged_user.session }}</li>
+        <li><strong>Department:</strong> {{ logged_user.department }}</li>
+        <li><strong>Joined:</strong> {{ logged_user.date_joined|date:"F j, Y" }}</li>
+      </ul>
+    </div>
+
+    <div class="card bg-base-100 shadow-md p-4">
+      <h2 class="text-xl font-semibold mb-2">Next Steps</h2>
+      <ul class="list-disc list-inside text-sm space-y-1">
+        <li>Update your profile</li>
+        <li>Join club events</li>
+        <li>Connect with members</li>
+        <li>Explore ongoing activities</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

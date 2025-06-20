@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Admin Login | JU Clubs{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
+  <h2 class="text-2xl font-bold mb-4 text-center">Admin Login</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-4">
+      <label class="label">Username</label>
+      <input type="text" name="username" required class="input input-bordered w-full">
+    </div>
+    <div class="mb-4">
+      <label class="label">Password</label>
+      <input type="password" name="password" required class="input input-bordered w-full">
+    </div>
+    <button type="submit" class="btn btn-primary w-full">Login</button>
+  </form>
+</div>
+{% endblock %}

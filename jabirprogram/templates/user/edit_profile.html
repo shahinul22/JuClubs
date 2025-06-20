@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto p-6 bg-white rounded-lg shadow">
+  <h2 class="text-2xl font-bold mb-4">Edit Profile</h2>
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Photo Preview and Upload -->
+    <div class="mb-4">
+  <label class="block mb-2">Profile Photo</label>
+  <div class="mb-2 w-24 h-24 rounded-full overflow-hidden border border-gray-300 flex items-center justify-center">
+    {% if user.photo %}
+      <img src="{{ user.photo.url }}" alt="Profile Photo" class="object-cover w-full h-full rounded-full" />
+    {% else %}
+      <span class="text-gray-400">No photo uploaded</span>
+    {% endif %}
+  </div>
+  <input type="file" name="photo" accept="image/*" class="input input-bordered w-full" />
+  <p class="text-sm text-gray-500 mt-1">Choose a new photo to add or replace your current one.</p>
+</div>
+
+
+    <!-- Other fields -->
+    <div class="mb-4">
+      <label class="block">Full Name</label>
+      <input type="text" name="full_name" value="{{ user.full_name }}" class="input input-bordered w-full" required>
+    </div>
+    <div class="mb-4">
+      <label class="block">Batch</label>
+      <input type="text" name="batch" value="{{ user.batch }}" class="input input-bordered w-full" required>
+    </div>
+    <div class="mb-4">
+      <label class="block">Session</label>
+      <input type="text" name="session" value="{{ user.session }}" class="input input-bordered w-full" required>
+    </div>
+    <div class="mb-4">
+      <label class="block">Department</label>
+      <input type="text" name="department" value="{{ user.department }}" class="input input-bordered w-full" required>
+    </div>
+
+    <div class="flex justify-between items-center">
+      <button type="submit" class="btn btn-success">Save</button>
+      <a href="{% url 'user:profile' %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

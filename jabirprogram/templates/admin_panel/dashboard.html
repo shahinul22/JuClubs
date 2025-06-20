@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard | JU Clubs{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow">
+  <h1 class="text-3xl font-bold mb-4">Admin Dashboard</h1>
+  <p class="text-gray-600">Welcome, {{ request.user.username }}!</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-8">
+    <div class="card bg-base-100 shadow p-4">
+      <h2 class="font-semibold text-lg mb-2">Manage Users</h2>
+      <p class="text-sm text-gray-500">Approve or remove regular users.</p>
+    </div>
+    <div class="card bg-base-100 shadow p-4">
+      <h2 class="font-semibold text-lg mb-2">Manage Clubs</h2>
+      <p class="text-sm text-gray-500">Approve club registration requests.</p>
+    </div>
+  </div>
+
+  <!-- User List Table -->
+  <div class="overflow-x-auto">
+    <h2 class="text-2xl font-semibold mb-4">Registered Users</h2>
+    <table class="table w-full table-zebra">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Username</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Batch</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in register_users %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ user.user_username }}</td>
+          <td>{{ user.full_name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.batch }}</td>
+          <td>
+            <a href="{% url 'admin_panel:delete_user' user.id %}" class="btn btn-xs btn-error">Delete</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-gray-500">No users found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

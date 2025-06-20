@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-xl mx-auto p-6 bg-white rounded-lg shadow">
+  <h2 class="text-2xl font-bold mb-4">Your Profile</h2>
+
+  <!-- Profile Photo -->
+  <div class="mb-6 w-24 h-24 rounded-full bg-gray-200 border-2 border-dashed overflow-hidden flex items-center justify-center text-4xl font-bold text-gray-600">
+    {% if user.photo %}
+      <img src="{{ user.photo.url }}" alt="{{ user.full_name }}" class="object-cover w-full h-full rounded-full">
+    {% else %}
+      {{ user.full_name|default:user.user_username|first|upper }}
+    {% endif %}
+  </div>
+
+  <ul class="space-y-2">
+    <li><strong>Username:</strong> {{ user.user_username }}</li>
+    <li><strong>Full Name:</strong> {{ user.full_name }}</li>
+    <li><strong>Email:</strong> {{ user.email }}</li>
+    <li><strong>Batch:</strong> {{ user.batch }}</li>
+    <li><strong>Session:</strong> {{ user.session }}</li>
+    <li><strong>Department:</strong> {{ user.department }}</li>
+  </ul>
+  <a href="{% url 'user:edit_profile' %}" class="btn btn-primary mt-6">Edit Profile</a>
+</div>
+{% endblock %}

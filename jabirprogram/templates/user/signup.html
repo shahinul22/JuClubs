@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}User Sign Up | JU Clubs{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
+  <h2 class="text-2xl font-bold mb-4 text-center">Create an Account</h2>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-4">
+      <label class="label">Username</label>
+      <input required type="text" name="user_username" required class="input input-bordered w-full" placeholder="Enter username">
+    </div>
+    <div class="mb-4">
+      <label class="label">Password</label>
+      <input required type="password" name="password" required class="input input-bordered w-full" placeholder="Enter password">
+    </div>
+    <div class="mb-4">
+      <label class="label">Full Name</label>
+      <input required type="text" name="full_name" class="input input-bordered w-full" placeholder="Full name">
+    </div>
+    <div class="mb-4">
+      <label class="label">Email</label>
+      <input required type="email" name="email" class="input input-bordered w-full" placeholder="Email address">
+    </div>
+    <div class="mb-4">
+      <label class="label">Batch</label>
+      <input required type="text" name="batch" class="input input-bordered w-full" placeholder="e.g. 47th">
+    </div>
+    <div class="mb-4">
+      <label class="label">Session</label>
+      <input required type="text" name="session" class="input input-bordered w-full" placeholder="e.g. 2017-18">
+    </div>
+    <div class="mb-4">
+      <label class="label">Department</label>
+      <input required type="text" name="department" class="input input-bordered w-full" placeholder="e.g. Computer Science & Engineering" required>
+    </div>
+    <button type="submit" class="btn btn-primary w-full">Sign Up</button>
+  </form>
+  <p class="mt-4 text-center text-sm">Already have an account?
+    <a href="{% url 'user:login' %}" class="text-blue-600 underline">Login here</a>
+  </p>
+</div>
+{% endblock %}
