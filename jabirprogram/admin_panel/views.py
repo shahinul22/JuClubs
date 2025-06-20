@@ -21,8 +21,8 @@ def admin_login_view(request):
 
     return render(request, 'admin_panel/login.html')
 
-@login_required(login_url='admin_panel:admin_login_view')
-@user_passes_test(lambda u: u.is_superuser, login_url='admin_panel:admin_login_view')
+
+@login_required
 def admin_dashboard_view(request):
     return render(request, 'admin_panel/dashboard.html')
 

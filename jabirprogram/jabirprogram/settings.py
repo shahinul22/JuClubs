@@ -29,17 +29,22 @@ INSTALLED_APPS = [
     # my apps
     'user',
     'admin_panel',
+    'posts',
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",           # ✅ Required before auth
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",        # ✅ Only once
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
+    # ✅ Your custom middleware (should come after auth if it uses request.user)
+    "user.middleware.CustomUserMiddleware",
 ]
+
 
 ROOT_URLCONF = "jabirprogram.urls"
 
@@ -54,6 +59,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # my context processor
                 'user.context_processors.user_context',
                 'admin_panel.context_processors.all_users',
             ],

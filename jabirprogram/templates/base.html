@@ -142,7 +142,7 @@
           <label for="my-drawer" class="btn btn-ghost lg:hidden hover:scale-105 transition-transform">
             <i class="fa-solid fa-bars text-xl"></i>
           </label>
-          <a href="#" class="btn btn-ghost text-2xl font-bold flex items-center">
+          <a href="{% url 'list' %}" class="btn btn-ghost text-2xl font-bold flex items-center">
             <img src="{% static 'images/logo-ju-small.png' %}" alt="JU Logo" class="w-10 h-10 mr-2">
 
             <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">JuClubs</span>
@@ -151,7 +151,7 @@
 
         <div class="navbar-center hidden lg:flex">
           <ul class="menu menu-horizontal px-1 gap-2">
-            <li><a href="#" class="nav-link"><i class="fa-solid fa-house mr-2"></i>Home</a></li>
+            <li><a href="{% url 'list' %}" class="nav-link"><i class="fa-solid fa-house mr-2"></i>Home</a></li>
             <li><a href="#" class="nav-link"><i class="fa-solid fa-users mr-2"></i>Members</a></li>
             <li><a href="#" class="nav-link"><i class="fa-solid fa-calendar-days mr-2"></i>Events</a></li>
           </ul>
@@ -263,7 +263,7 @@
         </label>
 
         <ul class="menu p-4 flex-grow space-y-2 mt-16">
-          <li><a href="#" class="nav-link"><i class="fa-solid fa-house mr-2"></i>Home</a></li>
+          <li><a href="{% url 'list' %}" class="nav-link"><i class="fa-solid fa-house mr-2"></i>Home</a></li>
           <li><a href="#" class="nav-link"><i class="fa-solid fa-users mr-2"></i>Members</a></li>
           <li><a href="#" class="nav-link"><i class="fa-solid fa-calendar-days mr-2"></i>Events</a></li>
         </ul>

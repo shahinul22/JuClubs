@@ -1,0 +1,15 @@
+<script>
+  function setLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+          .then(res => res.json())
+          .then(data => {
+            document.querySelector('input[name="location"]').value = data.display_name;
+          });
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', setLocation);
+</script>

@@ -136,7 +136,7 @@ def login_view(request):
         request.session['user_id'] = user.id
         request.session['username'] = user.user_username
         messages.success(request, f'Welcome, {user.full_name}!')
-        return redirect('user:dashboard')
+        return redirect('list')
 
     return render(request, 'user/login.html')
 

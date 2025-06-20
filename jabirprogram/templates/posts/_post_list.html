@@ -1,0 +1,87 @@
+<div class="posts-container">
+  {% for post in page_obj %}
+  <div class="post border rounded-lg p-4 mb-6 shadow-md bg-white" data-post-id="{{ post.id }}">
+
+    <!-- User, Time, Location -->
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <p class="font-semibold text-lg">{{ post.user.user_username }}</p>
+        <p class="text-sm text-gray-500">
+          {{ post.created_at|date:"F j, Y, g:i A" }} 
+          {% if post.location %} · {{ post.location }}{% endif %}
+        </p>
+      </div>
+    </div>
+
+    <!-- Post Text -->
+    {% if post.content %}
+      <p class="mb-3">{{ post.content }}</p>
+    {% endif %}
+
+    <!-- Post Image (Single or Multiple) -->
+    {% if post.image %}
+    <div class="flex flex-wrap gap-2 mb-3">
+      <img src="{{ post.image.url }}" alt="Post image" class="w-full md:w-[49%] object-cover rounded-lg max-h-96" />
+    </div>
+    {% endif %}
+<!-- 👇 Add Edit/Delete buttons here -->
+{% if post.user == request.user %}
+  <div class="flex gap-2 mb-3">
+    <a href="{% url 'edit_post' post.id %}" class="btn btn-xs btn-outline">Edit</a>
+    <form method="post" action="{% url 'delete_post' post.id %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-xs btn-error">Delete</button>
+    </form>
+  </div>
+{% endif %}
+    <!-- Like Button -->
+    <button class="like-btn btn btn-sm btn-outline mb-2" data-liked="{{ user in post.likes.all.values_list('user', flat=True) }}">
+      ❤️ Like (<span class="like-count">{{ post.likes.count }}</span>)
+    </button>
+
+    <!-- Comments Section -->
+    <div class="comments space-y-1 mb-3">
+  {% for comment in post.comments.all %}
+    <p class="text-sm">
+      <strong>{{ comment.user.user_username }}:</strong> {{ comment.text }}
+
+      <!-- 👇 Add Delete button inline here -->
+      {% if comment.user == request.user %}
+        <form method="post" action="{% url 'delete_comment' comment.id %}" class="inline ml-2">
+          {% csrf_token %}
+          <button type="submit" class="text-xs text-red-500">Delete</button>
+        </form>
+      {% endif %}
+    </p>
+  {% endfor %}
+</div>
+
+
+    <!-- Add Comment -->
+    <form class="comment-form flex gap-2" method="post">
+      {% csrf_token %}
+      <input type="text" name="text" placeholder="Add a comment..." required class="input input-bordered flex-grow" />
+      <button type="submit" class="btn btn-primary btn-sm">Comment</button>
+    </form>
+  </div>
+  {% empty %}
+  <p class="text-center text-gray-600">No posts available.</p>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+<div class="pagination flex justify-center space-x-3 mt-6">
+  {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm">Previous</a>
+  {% else %}
+    <span class="btn btn-sm btn-disabled">Previous</span>
+  {% endif %}
+
+  <span class="btn btn-sm btn-disabled">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm">Next</a>
+  {% else %}
+    <span class="btn btn-sm btn-disabled">Next</span>
+  {% endif %}
+</div>

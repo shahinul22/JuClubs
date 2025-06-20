@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>{{ edit|default_if_none:False|yesno:"Edit Post,Create Post" }}</h2>
+
+<form method="post" enctype="multipart/form-data" class="max-w-lg mx-auto mt-6">
+  {% csrf_token %}
+
+  {{ form.content.label_tag }}
+  {{ form.content }}
+
+  {{ form.image.label_tag }}
+  {{ form.image }}
+
+  <!-- Location input with geolocation button -->
+  <label for="id_location" class="block font-semibold mt-4 mb-1">Location</label>
+  <div class="flex gap-2 mb-4">
+    <input
+      type="text"
+      id="id_location"
+      name="location"
+      value="{{ form.location.value|default_if_none:'' }}"
+      placeholder="Your location"
+      class="input input-bordered flex-grow"
+    />
+    <button type="button" id="get-location-btn" class="btn btn-sm btn-secondary">Use My Location</button>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<script>
+document.getElementById('get-location-btn').addEventListener('click', () => {
+  const locationInput = document.getElementById('id_location');
+
+  if (!navigator.geolocation) {
+    alert('Geolocation is not supported by your browser');
+    return;
+  }
+
+  locationInput.value = 'Locating...';
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.address) {
+            const city = data.address.city || data.address.town || data.address.village || '';
+            const state = data.address.state || '';
+            const country = data.address.country || '';
+            locationInput.value = [city, state, country].filter(Boolean).join(', ');
+          } else {
+            locationInput.value = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+          }
+        })
+        .catch(() => {
+          locationInput.value = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+        });
+    },
+    (error) => {
+      alert('Unable to retrieve your location');
+      locationInput.value = '';
+    }
+  );
+});
+</script>
+{% endblock %}

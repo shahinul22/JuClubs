@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Posts | JU Clubs{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-6">
+  {% csrf_token %}
+
+  {% for post in page_obj %}
+  <div class="post border rounded-lg p-5 mb-6 shadow bg-white" data-post-id="{{ post.id }}">
+
+    <!-- Header: Username, Time, Location -->
+    <div class="mb-3">
+      <p class="font-semibold text-lg">{{ post.user.user_username }}</p>
+      <p class="text-sm text-gray-500">
+        {{ post.created_at|date:"F j, Y · g:i A" }}
+        {% if post.location %} · {{ post.location }}{% endif %}
+      </p>
+    </div>
+
+    <!-- Post Content -->
+    {% if post.content %}
+      <p class="mb-3 text-base">{{ post.content }}</p>
+    {% endif %}
+
+    <!-- Image -->
+    {% if post.image %}
+      <img src="{{ post.image.url }}" alt="Post image" class="rounded-lg w-full max-h-[500px] object-cover mb-4" />
+    {% endif %}
+    
+
+    <!-- Like Button -->
+    <button class="like-btn btn btn-sm btn-outline mb-3"
+      data-liked="{% if post.id in liked_post_ids %}true{% else %}false{% endif %}">
+      {% if post.id in liked_post_ids %}Unlike{% else %}Like{% endif %}
+      (<span class="like-count">{{ post.likes.count }}</span>)
+    </button>
+
+    <!-- Comments -->
+    <div class="comments space-y-1 mb-3">
+      {% for comment in post.comments.all %}
+        <p class="text-sm"><strong>{{ comment.user.user_username }}:</strong> {{ comment.text }}</p>
+      {% endfor %}
+    </div>
+
+    <!-- Comment Form -->
+    <form class="comment-form flex gap-2" method="post">
+      <input type="text" name="text" placeholder="Add a comment..." required
+             class="input input-bordered w-full text-sm" />
+      <button type="submit" class="btn btn-primary btn-sm">Comment</button>
+    </form>
+  </div>
+  {% empty %}
+  <p class="text-center text-gray-600 mt-10">No posts available.</p>
+  {% endfor %}
+
+  <!-- Pagination -->
+  <div class="pagination flex justify-center space-x-3 mt-6">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm">Previous</a>
+    {% else %}
+      <span class="btn btn-sm btn-disabled">Previous</span>
+    {% endif %}
+
+    <span class="btn btn-sm btn-disabled">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm">Next</a>
+    {% else %}
+      <span class="btn btn-sm btn-disabled">Next</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Scripts: Like + Comment AJAX -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Like button AJAX
+  document.querySelectorAll('.like-btn').forEach(button => {
+    button.addEventListener('click', async () => {
+      const postDiv = button.closest('.post');
+      const postId = postDiv.dataset.postId;
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      const response = await fetch(`/posts/${postId}/like-toggle/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken},
+      });
+      const data = await response.json();
+      if (data.liked !== undefined) {
+        button.dataset.liked = data.liked ? "true" : "false";
+        const likedText = data.liked ? 'Unlike' : 'Like';
+
+        // Clear text except like-count span
+        button.childNodes.forEach(node => {
+          if (node.nodeType === Node.TEXT_NODE) node.textContent = '';
+        });
+        if (button.firstChild.nodeType === Node.TEXT_NODE) {
+          button.firstChild.textContent = likedText + " ";
+        } else {
+          button.insertBefore(document.createTextNode(likedText + " "), button.firstChild);
+        }
+
+        let likeCountSpan = button.querySelector('.like-count');
+        if (!likeCountSpan) {
+          likeCountSpan = document.createElement('span');
+          likeCountSpan.classList.add('like-count');
+          button.appendChild(likeCountSpan);
+        }
+        likeCountSpan.textContent = `(${data.likes_count})`;
+      }
+    });
+  });
+
+  // Comment form AJAX
+  document.querySelectorAll('.comment-form').forEach(form => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const postDiv = form.closest('.post');
+      const postId = postDiv.dataset.postId;
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const textInput = form.querySelector('input[name="text"]');
+      const text = textInput.value.trim();
+
+      if (!text) return;
+
+      const response = await fetch(`/posts/${postId}/comment-add/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken},
+        body: new URLSearchParams({text}),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        const commentsDiv = postDiv.querySelector('.comments');
+        const newComment = document.createElement('p');
+        newComment.innerHTML = `<strong>${data.username}:</strong> ${data.text}`;
+        commentsDiv.appendChild(newComment);
+        textInput.value = '';
+      } else {
+        alert(data.error || 'Failed to add comment.');
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
