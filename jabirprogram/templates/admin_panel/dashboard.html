@@ -13,8 +13,21 @@
     </div>
     <div class="card bg-base-100 shadow p-4">
       <h2 class="font-semibold text-lg mb-2">Manage Clubs</h2>
+      <!-- Approved Clubs List -->
+  <h2 class="text-2xl font-semibold mt-6 mb-4">Approved Clubs</h2>
+  <ul class="list-disc list-inside">
+    {% for club in approved_clubs %}
+      <li>{{ club.name }} ({{ club.username }})</li>
+    {% empty %}
+      <li>No approved clubs found.</li>
+    {% endfor %}
+  </ul>
       <p class="text-sm text-gray-500">Approve club registration requests.</p>
     </div>
+  </div>
+  <!-- Button to Pending Clubs -->
+  <div class="mt-6">
+    <a href="{% url 'admin_panel:pending_list' %}" class="btn btn-primary">View Pending Club Registrations</a>
   </div>
 
   <!-- User List Table -->

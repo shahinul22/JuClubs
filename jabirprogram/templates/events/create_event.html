@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block content %}
+  <div class="max-w-3xl mx-auto p-6 bg-white rounded shadow-md">
+    <h2 class="text-2xl font-semibold mb-6">Create New Event for {{ club.name }}</h2>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div>
+        {{ form.title.label_tag }}
+        {{ form.title|add_class:"input input-bordered w-full" }}
+        {{ form.title.errors }}
+      </div>
+
+      <div>
+        {{ form.description.label_tag }}
+        {{ form.description|add_class:"textarea textarea-bordered w-full" }}
+        {{ form.description.errors }}
+      </div>
+
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          {{ form.date_time.label_tag }}
+          {{ form.date_time|add_class:"input input-bordered w-full" }}
+          {{ form.date_time.errors }}
+        </div>
+        <div>
+          {{ form.registration_deadline.label_tag }} (optional)
+          {{ form.registration_deadline|add_class:"input input-bordered w-full" }}
+          {{ form.registration_deadline.errors }}
+        </div>
+      </div>
+
+      <div>
+        {{ form.location.label_tag }}
+        {{ form.location|add_class:"input input-bordered w-full" }}
+        {{ form.location.errors }}
+      </div>
+
+      <div>
+        {{ form.poster.label_tag }}
+        {{ form.poster }}
+        {{ form.poster.errors }}
+      </div>
+
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          {{ form.organizer_name.label_tag }}
+          {{ form.organizer_name|add_class:"input input-bordered w-full" }}
+          {{ form.organizer_name.errors }}
+        </div>
+        <div>
+          {{ form.organizer_contact.label_tag }}
+          {{ form.organizer_contact|add_class:"input input-bordered w-full" }}
+          {{ form.organizer_contact.errors }}
+        </div>
+      </div>
+
+      <div>
+        {{ form.capacity.label_tag }}
+        {{ form.capacity|add_class:"input input-bordered w-full" }}
+        {{ form.capacity.errors }}
+      </div>
+
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          {{ form.visibility.label_tag }}
+          {{ form.visibility|add_class:"select select-bordered w-full" }}
+          {{ form.visibility.errors }}
+        </div>
+        <div>
+          {{ form.event_type.label_tag }}
+          {{ form.event_type|add_class:"select select-bordered w-full" }}
+          {{ form.event_type.errors }}
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        {{ form.is_paid }}
+        {{ form.is_paid.label_tag }}
+      </div>
+
+      <div>
+        {{ form.ticket_price.label_tag }} (required if paid)
+        {{ form.ticket_price|add_class:"input input-bordered w-full" }}
+        {{ form.ticket_price.errors }}
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full mt-4">Create Event</button>
+    </form>
+  </div>
+{% endblock %}

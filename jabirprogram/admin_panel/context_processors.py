@@ -16,3 +16,15 @@ def all_users(request):
         'custom_user': user,
         'register_users': register_users
     }
+
+
+from clubs.models import Club, ClubRegistration
+
+def clubs_context(request):
+    approved_clubs = Club.objects.filter(is_active=True)
+    pending_clubs = ClubRegistration.objects.filter(is_approved=False)
+
+    return {
+        'approved_clubs': approved_clubs,
+        'pending_clubs': pending_clubs,
+    }

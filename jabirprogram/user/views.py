@@ -8,6 +8,10 @@ import random
 from .models import User
 
 
+def home_view(request):
+    return render(request, 'home.html')  # not base.html directly!
+
+
 def generate_code():
     return str(random.randint(100000, 999999))
 
@@ -136,7 +140,7 @@ def login_view(request):
         request.session['user_id'] = user.id
         request.session['username'] = user.user_username
         messages.success(request, f'Welcome, {user.full_name}!')
-        return redirect('list')
+        return redirect('home')
 
     return render(request, 'user/login.html')
 

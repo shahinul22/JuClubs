@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="text-xl font-bold mb-4">Pending Club Registrations</h2>
+
+{% if pending_clubs %}
+  <ul class="space-y-4">
+    {% for reg in pending_clubs %}
+      <li class="border p-4 rounded shadow-sm">
+        <p><strong>Club Name:</strong> {{ reg.club_name }}</p>
+        <p><strong>Category:</strong> {{ reg.club_category }}</p>
+        <p><strong>President:</strong> {{ reg.president_name }} ({{ reg.president_email }})</p>
+        <a href="{% url 'admin_panel:approve_club' reg.id %}" class="btn btn-success btn-sm mt-2">Approve</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No pending registrations.</p>
+{% endif %}
+{% endblock %}

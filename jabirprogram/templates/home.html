@@ -1,0 +1,274 @@
+
+{% extends 'base.html' %}
+{% block title %}Admin Login | JU Clubs{% endblock %}
+
+{% block content %}
+ <!-- Hero Section -->
+      <section class="hero min-h-[70vh] hero-pattern">
+        <div class="hero-content flex-col lg:flex-row-reverse gap-12 px-4 md:px-8 py-12">
+          <div class="hero-image flex justify-center">
+            <div class="relative">
+              <div class="w-80 h-80 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse-slow">
+                <div class="w-64 h-64 bg-white rounded-full flex items-center justify-center shadow-xl">
+                  <div class="bg-gray-200 border-2 border-dashed rounded-xl w-56 h-56 flex items-center justify-center text-indigo-600">
+                    <i class="fa-solid fa-users text-6xl"></i>
+                  </div>
+                </div>
+              </div>
+              <div class="absolute -top-4 -right-4 bg-yellow-400 text-gray-900 px-4 py-2 rounded-full font-bold animate-bounce-slow">
+                <i class="fa-solid fa-star mr-1"></i> {{ club_count }}+ Clubs
+              </div>
+              <div class="absolute -bottom-4 -left-4 bg-indigo-600 text-white px-4 py-2 rounded-full font-bold animate-float">
+  <i class="fa-solid fa-calendar mr-1"></i>
+  {% if today_event_count %}
+    {{ today_event_count }} Event{{ today_event_count|pluralize }} Today
+  {% elif week_event_count %}
+    {{ week_event_count }} Events This Week
+  {% elif month_event_count %}
+    {{ month_event_count }} Events This Month
+  {% else %}
+    No Events in the recent times
+  {% endif %}
+</div>
+
+            </div>
+          </div>
+          <div class="hero-text max-w-lg">
+            <h1 class="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+              Discover Student Clubs at JU
+            </h1>
+            <p class="py-6 text-lg text-gray-600">
+              Join the vibrant community of student organizations at Jahangirnagar University. Find your passion, develop skills, and create lifelong memories with like-minded peers.
+            </p>
+            <div class="flex flex-wrap gap-4">
+              <a href="#featured-clubs" class="btn btn-primary px-8">
+                <i class="fa-solid fa-magnifying-glass mr-2"></i> Explore Clubs
+              </a>
+              <a href="#events" class="btn btn-outline btn-primary px-8">
+                <i class="fa-solid fa-calendar mr-2"></i> View Events
+              </a>
+            </div>
+            
+            <div class="mt-10 flex items-center gap-6">
+              <div>
+                <div class="text-3xl font-bold text-indigo-600">{{total_events}}+</div>
+                <div class="text-gray-500">Active Events</div>
+              </div>
+              <div>
+                <div class="text-3xl font-bold text-purple-600">{{ total_member_count }} +</div>
+                <div class="text-gray-500">Active Members</div>
+              </div>
+              <div>
+                <div class="text-3xl font-bold text-pink-600">{{ club_count }}+</div>
+                <div class="text-gray-500">Student Clubs</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+<!-- Featured Clubs Section -->
+        <section id="featured-clubs" class="py-12">
+  <div class="text-center mb-12">
+    <h2 class="text-3xl md:text-4xl font-bold mb-4">Featured Student Clubs</h2>
+    <p class="text-gray-600 max-w-2xl mx-auto">Discover the most active and popular student organizations at Jahangirnagar University</p>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {% for club in featured_clubs %}
+    <div class="card card-hover bg-base-100 shadow-xl overflow-hidden">
+      <figure class="h-48 flex items-center justify-center
+        {% if club.cover_photo %}
+          bg-cover bg-center
+        {% else %}
+          bg-gradient-to-r from-blue-500 to-indigo-600
+        {% endif %}
+      " 
+      {% if club.cover_photo %}
+        style="background-image: url('{{ club.cover_photo.url }}');"
+      {% endif %}
+      >
+        {% if not club.cover_photo %}
+          <i class="fa-solid fa-users text-white text-6xl"></i>
+        {% endif %}
+      </figure>
+      <div class="card-body">
+        <h3 class="card-title">{{ club.name }}</h3>
+        <p>{{ club.description|default:"No description available."|truncatewords:25 }}</p>
+        <div class="card-actions justify-between mt-4">
+          <div class="badge badge-primary gap-2">
+            <i class="fa-solid fa-users"></i> <!-- Replace with actual member count if available -->
+            {% if club.members.count %}
+              {{ club.members.count }} Members
+            {% else %}
+              Members info not available
+            {% endif %}
+          </div>
+          <a href="{% url 'clubs:club_profile_about' %}?club_id={{ club.id }}">View Club</a>
+
+
+        </div>
+      </div>
+    </div>
+    {% empty %}
+      <p class="text-center col-span-3 text-gray-500">No featured clubs available at the moment.</p>
+    {% endfor %}
+  </div>
+  
+  <div class="text-center mt-10">
+    <a href="#" class="btn btn-outline btn-primary px-8">
+      <i class="fa-solid fa-list mr-2"></i> View All Clubs
+    </a>
+  </div>
+</section>
+
+        
+        <!-- Upcoming Events -->
+        <section id="events" class="py-12 bg-base-100 rounded-2xl px-6 py-8 shadow-sm">
+  <div class="text-center mb-12">
+    <h2 class="text-3xl md:text-4xl font-bold mb-4">Upcoming Events</h2>
+    <p class="text-gray-600 max-w-2xl mx-auto">Don't miss out on exciting events happening across campus</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {% for event in upcoming_events %}
+    <div class="card card-hover card-side bg-base-100 shadow-md">
+      <figure class="w-1/3 bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center">
+        {% comment %} <i class="fa-solid fa-calendar text-white text-4xl"></i> {% endcomment %}
+        {% if event.poster %}
+          <img src="{{ event.poster.url }}" alt="{{ club.title }} cover" class="w-full h-full object-cover">
+        {% else %}
+          <div class="bg-gradient-to-r from-blue-700 to-indigo-800 w-full h-full flex items-center justify-center">
+            <i class="fa-solid fa-mountain-sun text-white text-6xl opacity-30"></i>
+          </div>
+        {% endif %}
+      </figure>
+      
+      <div class="card-body w-2/3">
+        <h3 class="card-title">{{ event.title }}</h3>
+        <p class="text-sm text-gray-600">
+          {{ event.date_time|date:"D, d M" }} • 
+          {{ event.date_time|time:"g:i A" }}
+          {% if event.end_time %} - {{ event.end_time|time:"g:i A" }}{% endif %}
+        </p>
+        <p class="text-sm">{{ event.description|truncatechars:100 }}</p>
+        <div class="card-actions justify-between mt-2">
+          <div class="badge badge-outline">{{ event.club.category }}</div>
+          {% comment %} <button class="btn btn-sm btn-primary">Details</button> {% endcomment %}
+          <a href="{% url 'events:event_detail' event.id %}" class="mt-3 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          View Details
+        </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <p>No upcoming events.</p>
+    {% endfor %}
+    <div class="card card-side bg-base-100 shadow-sm">
+  <figure>
+    <img
+      src="https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.webp"
+      alt="Movie" />
+  </figure>
+  <div class="card-body">
+    <h2 class="card-title">New movie is released!</h2>
+    <p>Click the button to watch on Jetflix app.</p>
+    <div class="card-actions justify-end">
+      <button class="btn btn-primary">Watch</button>
+    </div>
+  </div>
+</div>
+  </div>
+
+  <div class="text-center mt-10">
+    <a href="#" class="btn btn-outline btn-primary px-8">
+      <i class="fa-solid fa-calendar mr-2"></i> View All Events
+    </a>
+  </div>
+</section>
+
+        
+        <!-- Testimonials -->
+        <section class="py-12">
+          <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">What Students Say</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">Hear from students who have benefited from joining clubs</p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Testimonial 1 -->
+            <div class="card card-hover bg-base-100 p-6 shadow-md">
+              <div class="flex items-center mb-4">
+                <div class="avatar">
+                  <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <span class="text-indigo-600 font-bold">A</span>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <h4 class="font-bold">Ayesha Rahman</h4>
+                  <p class="text-sm text-gray-600">Computer Science</p>
+                </div>
+              </div>
+              <p class="text-gray-700">
+                "Joining the Computer Club transformed my university experience. I gained practical skills and made friends who share my passion for technology."
+              </p>
+              <div class="mt-4 text-yellow-400">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </div>
+            </div>
+            
+            <!-- Testimonial 2 -->
+            <div class="card card-hover bg-base-100 p-6 shadow-md">
+              <div class="flex items-center mb-4">
+                <div class="avatar">
+                  <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                    <span class="text-purple-600 font-bold">R</span>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <h4 class="font-bold">Rafiq Islam</h4>
+                  <p class="text-sm text-gray-600">Environmental Science</p>
+                </div>
+              </div>
+              <p class="text-gray-700">
+                "The Environmental Club helped me turn my passion into action. We've made real changes on campus and raised awareness about sustainability."
+              </p>
+              <div class="mt-4 text-yellow-400">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star-half-stroke"></i>
+              </div>
+            </div>
+            
+            <!-- Testimonial 3 -->
+            <div class="card card-hover bg-base-100 p-6 shadow-md">
+              <div class="flex items-center mb-4">
+                <div class="avatar">
+                  <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
+                    <span class="text-pink-600 font-bold">T</span>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <h4 class="font-bold">Tahmina Akter</h4>
+                  <p class="text-sm text-gray-600">English Literature</p>
+                </div>
+              </div>
+              <p class="text-gray-700">
+                "Performing with the Music & Arts Society gave me confidence and unforgettable memories. It's the perfect creative outlet alongside studies."
+              </p>
+              <div class="mt-4 text-yellow-400">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+{% endblock %}

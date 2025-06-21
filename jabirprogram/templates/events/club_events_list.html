@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="max-w-5xl mx-auto p-6 bg-white rounded shadow-md">
+    <h2 class="text-3xl font-bold mb-6">Events for {{ club.name }}</h2>
+
+    {% if events %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for event in events %}
+          <div class="card bg-base-100 shadow-md rounded-lg hover:shadow-xl transition-shadow duration-300">
+            {% if event.poster %}
+              <figure>
+                <img src="{{ event.poster.url }}" alt="{{ event.title }}" class="rounded-t-lg object-cover h-48 w-full">
+              </figure>
+            {% endif %}
+            <div class="card-body p-4">
+              <h3 class="text-xl font-semibold mb-2">{{ event.title }}</h3>
+              <p class="text-gray-600 text-sm mb-2">{{ event.date_time|date:"F j, Y, g:i A" }}</p>
+              <p class="text-gray-700 mb-4 truncate">{{ event.description|truncatechars:100 }}</p>
+
+              <p class="text-sm text-gray-500 mb-2">
+                <strong>Location:</strong> {{ event.location }}
+              </p>
+
+              <p class="text-sm text-gray-500 mb-2">
+                <strong>Organizer:</strong> {{ event.organizer_name }} ({{ event.organizer_contact }})
+              </p>
+
+              {% if event.is_registration_open %}
+                <a href="{% url 'events:event_registration' event.id %}" class="btn btn-primary btn-sm w-full">
+                  Register
+                </a>
+              {% else %}
+                <button class="btn btn-disabled btn-sm w-full" disabled>
+                  Registration Closed
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-center text-gray-600">No events found for this club.</p>
+    {% endif %}
+  </div>
+{% endblock %}

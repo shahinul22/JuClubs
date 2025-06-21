@@ -30,6 +30,9 @@ INSTALLED_APPS = [
     'user',
     'admin_panel',
     'posts',
+    'clubs',
+    'events',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -62,6 +65,19 @@ TEMPLATES = [
                 # my context processor
                 'user.context_processors.user_context',
                 'admin_panel.context_processors.all_users',
+                'django.template.context_processors.request',
+                'admin_panel.context_processors.clubs_context',
+                'clubs.context_processors.logged_club_context',
+                'events.context_processors.total_events_count',
+                'events.context_processors.today_events_count',
+                'events.context_processors.current_week_events_count',
+                'events.context_processors.current_month_events_count',
+                'clubs.context_processors.club_count',
+                'clubs.context_processors.total_member_count',
+                'events.context_processors.upcoming_events_processor',
+                'clubs.context_processors.featured_clubs',
+
+
             ],
         },
     },

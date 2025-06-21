@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="max-w-md mx-auto p-6 bg-white rounded shadow-md">
+    <h2 class="text-2xl font-semibold mb-4">Register for "{{ event.title }}"</h2>
+    <p class="mb-4 text-gray-600">
+      <strong>Date & Time:</strong> {{ event.date_time|date:"F j, Y, g:i A" }}<br>
+      <strong>Location:</strong> {{ event.location }}
+    </p>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary w-full">Register</button>
+    </form>
+  </div>
+{% endblock %}

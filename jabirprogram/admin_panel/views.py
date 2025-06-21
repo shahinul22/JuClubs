@@ -22,9 +22,13 @@ def admin_login_view(request):
     return render(request, 'admin_panel/login.html')
 
 
+from clubs.models import Club
+
 @login_required
 def admin_dashboard_view(request):
-    return render(request, 'admin_panel/dashboard.html')
+    approved_clubs = Club.objects.filter(is_active=True)
+    # Pass approved_clubs in the context
+    return render(request, 'admin_panel/dashboard.html', {'approved_clubs': approved_clubs})
 
 @login_required(login_url='admin_panel:admin_login_view')
 @user_passes_test(lambda u: u.is_superuser, login_url='admin_panel:admin_login_view')
@@ -43,3 +47,24 @@ def delete_user_view(request, user_id):
     user = get_object_or_404(User, id=user_id)
     user.delete()
     return redirect('admin_panel:admin_dashboard_view')
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from clubs.models import ClubRegistration
+
+@login_required(login_url='admin_panel:admin_login_view')
+@user_passes_test(lambda u: u.is_superuser)
+def pending_club_list_view(request):
+    pending_clubs = ClubRegistration.objects.filter(is_approved=False)
+    return render(request, 'admin_panel/pending_clubs.html', {'pending_clubs': pending_clubs})
+
+@login_required(login_url='admin_panel:admin_login_view')
+@user_passes_test(lambda u: u.is_superuser)
+def approve_club_view(request, reg_id):
+    registration = get_object_or_404(ClubRegistration, id=reg_id, is_approved=False)
+    registration.approve()
+    messages.success(request, f"Club '{registration.club_name}' approved successfully.")
+    return redirect('admin_panel:pending_list')

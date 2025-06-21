@@ -4,13 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}JU Clubs{% endblock %}</title>
-
+  <title>JU Clubs - Student Organization Platform</title>
+  
   <!-- Stylesheets -->
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link href="{% static 'css/output.css' %}" rel="stylesheet">
-
+  
   <!-- Tailwind Configuration -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -22,6 +21,7 @@
             'float': 'float 3s ease-in-out infinite',
             'fade-in': 'fadeIn 0.5s ease-out',
             'slide-in': 'slideIn 0.5s ease-out',
+            'bounce-slow': 'bounce 2s infinite'
           },
           keyframes: {
             float: {
@@ -52,7 +52,7 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/daisyui@4.4.20"></script>
   <style>
-    /* Beautiful sign-in button styles */
+    /* Enhanced sign-in button styles */
     .btn-beautiful {
       background: linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899);
       background-size: 200% 200%;
@@ -62,6 +62,8 @@
       box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
       position: relative;
       overflow: hidden;
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
     
     .btn-beautiful:hover {
@@ -97,11 +99,28 @@
     .btn-beautiful:hover i {
       transform: translateX(3px);
     }
+    
+    .btn-secondary {
+      background: linear-gradient(45deg, #4f46e5, #7c3aed);
+      color: white;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      border: none;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(124, 58, 237, 0.4);
+    }
 
-    /* Hover animations for nav items */
+    /* Enhanced nav animations */
     .nav-link {
       position: relative;
       overflow: hidden;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border-radius: 0.375rem;
     }
     
     .nav-link::after {
@@ -119,6 +138,10 @@
       width: 100%;
     }
     
+    .nav-link:hover {
+      background-color: rgba(99, 102, 241, 0.05);
+    }
+    
     /* Profile animation */
     .profile-avatar {
       transition: all 0.3s ease;
@@ -128,37 +151,106 @@
       transform: scale(1.05);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.5);
     }
+    
+    /* Hero section */
+    .hero-pattern {
+      background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, rgba(255,255,255,0) 70%);
+    }
+    
+    /* Active nav item */
+    .active-nav {
+      background: linear-gradient(90deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.1) 100%);
+      border-left: 3px solid #6366f1;
+    }
+    
+    /* Card hover effect */
+    .card-hover {
+      transition: all 0.3s ease;
+      border: 1px solid rgba(229, 231, 235, 0.8);
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+    
+    /* Footer styling */
+    .footer-links a {
+      position: relative;
+      padding-bottom: 2px;
+    }
+    
+    .footer-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background: currentColor;
+      transition: width 0.3s ease;
+    }
+    
+    .footer-links a:hover::after {
+      width: 100%;
+    }
+    
+    /* Search input */
+    .search-input {
+      transition: all 0.3s ease;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .search-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .hero-content {
+        text-align: center;
+      }
+      
+      .hero-image {
+        margin-top: 2rem;
+      }
+    }
   </style>
 </head>
 
-<body class="min-h-screen flex flex-col bg-slate-50 text-gray-800 lg:mx-10 lg:mt-3">
+<body class="min-h-screen flex flex-col bg-slate-50 text-gray-800">
   <div class="drawer">
     <input id="my-drawer" type="checkbox" class="drawer-toggle">
 
     <div class="drawer-content flex flex-col">
-      <!-- Navbar with animations -->
-      <nav class="navbar bg-white shadow-sm px-4 mt-1 animate-fade-in">
+      <!-- Enhanced Navbar -->
+      <nav class="navbar bg-white shadow-sm px-4 lg:px-8 mt-1 animate-fade-in sticky top-0 z-40">
         <div class="navbar-start">
-          <label for="my-drawer" class="btn btn-ghost lg:hidden hover:scale-105 transition-transform">
+          <label for="my-drawer" class="btn btn-ghost lg:hidden hover:scale-105 transition-transform" aria-label="Open menu">
             <i class="fa-solid fa-bars text-xl"></i>
           </label>
-          <a href="{% url 'list' %}" class="btn btn-ghost text-2xl font-bold flex items-center">
-            <img src="{% static 'images/logo-ju-small.png' %}" alt="JU Logo" class="w-10 h-10 mr-2">
-
-            <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">JuClubs</span>
+          <a href="{% url 'home' %}" class="btn btn-ghost text-2xl font-bold flex items-center">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-1 rounded-lg mr-3">
+              <img src="{% static 'images/logo-ju-small.png' %}" alt="JU Logo" class="w-10 h-10 rounded">
+            </div>
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">JUClubs</span>
           </a>
         </div>
 
         <div class="navbar-center hidden lg:flex">
-          <ul class="menu menu-horizontal px-1 gap-2">
-            <li><a href="{% url 'list' %}" class="nav-link"><i class="fa-solid fa-house mr-2"></i>Home</a></li>
+          <ul class="menu menu-horizontal px-1 gap-1">
+            <li><a href="{% url 'home' %}" class="nav-link active-nav"><i class="fa-solid fa-house mr-2"></i>Home</a></li>
             <li><a href="#" class="nav-link"><i class="fa-solid fa-users mr-2"></i>Members</a></li>
             <li><a href="#" class="nav-link"><i class="fa-solid fa-calendar-days mr-2"></i>Events</a></li>
+            <li><a href="#" class="nav-link"><i class="fa-solid fa-trophy mr-2"></i>Achievements</a></li>
+            <li><a href="#" class="nav-link"><i class="fa-solid fa-newspaper mr-2"></i>News</a></li>
           </ul>
         </div>
 
         <div class="navbar-end space-x-4">
-          {% if request.user.is_authenticated or logged_user %}
+          {% if request.user.is_authenticated or logged_user or logged_club %}
             <div class="flex items-center space-x-3">
               <!-- Theme Toggle -->
               <div class="tooltip tooltip-bottom" data-tip="Toggle theme">
@@ -172,7 +264,7 @@
               <!-- Profile Dropdown -->
               <div class="dropdown dropdown-end">
                 <div tabindex="0" class="btn btn-ghost btn-circle avatar tooltip tooltip-bottom profile-avatar"
-                  data-tip="{% if request.user.is_superuser %}Admin{% else %}{{ logged_user.full_name|default:logged_user.user_username }}{% endif %}">
+                     data-tip="{% if request.user.is_superuser %}Admin{% elif logged_user %}{{ logged_user.full_name|default:logged_user.user_username }}{% elif logged_club %}{{ logged_club.name }}{% endif %}">
                   <div class="w-10 h-10 rounded-full bg-gray-200 border-2 border-dashed overflow-hidden flex items-center justify-center text-xl font-bold text-gray-600">
                     {% if request.user.is_superuser %}
                       <img src="{% static 'images/logo-ju-small.png' %}" alt="Admin Logo" class="object-cover w-full h-full" />
@@ -180,48 +272,70 @@
                       <img src="{{ logged_user.photo.url }}" alt="{{ logged_user.full_name }}" class="object-cover w-full h-full" />
                     {% elif logged_user %}
                       {{ logged_user.full_name|default:logged_user.user_username|first|upper }}
-                    {% else %}
-                      {{ request.user.username|first|upper }}
+                    {% elif logged_club and logged_club.logo %}
+                      <img src="{{ logged_club.logo.url }}" alt="{{ logged_club.name }}" class="object-cover w-full h-full" />
+                    {% elif logged_club %}
+                      {{ logged_club.name|first|upper }}
                     {% endif %}
                   </div>
                 </div>
 
                 <!-- Dropdown Menu -->
-                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 animate-slide-in">
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 animate-slide-in z-50">
                   {% if request.user.is_superuser %}
-                    <li><a href="#"><i class="fa-solid fa-user-shield mr-2"></i>Profile</a></li>
+                    <li><a href="#"><i class="fa-solid fa-user-shield mr-2"></i>Admin Dashboard</a></li>
+                    <li><a href="#"><i class="fa-solid fa-cog mr-2"></i>Settings</a></li>
                     <li><a href="{% url 'admin_panel:admin_logout_view' %}"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Logout</a></li>
                   {% elif logged_user %}
-                    <li><a href="{% url 'user:profile' %}"><i class="fa-solid fa-user mr-2"></i>Profile</a></li>
+                    <li><a href="{% url 'user:profile' %}"><i class="fa-solid fa-user mr-2"></i>My Profile</a></li>
+                    <li><a href="#"><i class="fa-solid fa-bookmark mr-2"></i>My Clubs</a></li>
+                    <li><a href="#"><i class="fa-solid fa-bell mr-2"></i>Notifications</a></li>
                     <li><a href="{% url 'user:logout' %}"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Logout</a></li>
+                  {% elif logged_club %}
+                    <li><a href="{% url 'clubs:club_profile_about' %}"><i class="fa-solid fa-building-user mr-2"></i>Club Profile</a></li>            
+                    <li><a href="#"><i class="fa-solid fa-calendar mr-2"></i>Manage Events</a></li>
+                    <li><a href="#"><i class="fa-solid fa-users mr-2"></i>Manage Members</a></li>
+                    <li><a href="{% url 'clubs:club_logout' %}"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Logout</a></li>
                   {% endif %}
                 </ul>
               </div>
             </div>
+
           {% else %}
             <!-- Guest Buttons -->
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-3">
+              <!-- Theme Toggle -->
+              <div class="tooltip tooltip-bottom" data-tip="Toggle theme">
+                <label class="swap swap-rotate hover:scale-110 transition-transform">
+                  <input type="checkbox" class="theme-controller" value="dark" />
+                  <i class="fa-solid fa-sun swap-off text-xl"></i>
+                  <i class="fa-solid fa-moon swap-on text-xl"></i>
+                </label>
+              </div>
+              
               <!-- Login Dropdown -->
               <div class="dropdown dropdown-end">
-                <button class="btn-beautiful flex items-center gap-2 px-6 py-3 rounded-lg">
+                <button class="btn-beautiful flex items-center gap-2 px-5 py-2.5 rounded-lg">
                   <i class="fa-solid fa-arrow-right-to-bracket"></i>
                   Sign In
                 </button>
 
-                <ul class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 animate-slide-in">
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 animate-slide-in z-50">
                   <li><a href="{% url 'admin_panel:admin_login_view' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-user-shield mr-2"></i>Admin</a></li>
                   <li><a href="{% url 'user:login' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-user mr-2"></i>User</a></li>
+                  <li><a href="{% url 'clubs:login' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-building-user mr-2"></i>Club</a></li>
                 </ul>
               </div>
 
               <!-- Register Dropdown -->
               <div class="dropdown dropdown-end">
-                <button class="btn btn-secondary flex items-center gap-2 px-6 py-3 rounded-lg transition-all hover:bg-purple-600">
+                <button class="btn-secondary flex items-center gap-2 px-5 py-2.5 rounded-lg">
                   <i class="fa-solid fa-user-plus"></i>
-                  SignUp
+                  Sign Up
                 </button>
-                <ul class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 animate-slide-in">
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 animate-slide-in z-50">
                   <li><a href="{% url 'user:signup' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-user mr-2"></i>User</a></li>
+                  <li><a href="{% url 'clubs:register' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-building mr-2"></i>Clubs</a></li>
                 </ul>
               </div>
             </div>
@@ -230,7 +344,7 @@
       </nav>
 
       {% if messages %}
-      <div class="fixed top-5 right-5 mr-10 z-50 space-y-2 w-96 max-w-[90vw]">
+      <div class="fixed top-5 right-5 z-50 space-y-2 w-96 max-w-[90vw]">
         {% for message in messages %}
         <div class="alert alert-{{ message.tags }} shadow-lg animate-slide-in transition-opacity duration-500">
           <div>
@@ -246,27 +360,97 @@
       </div>
       {% endif %}
 
-      <main class="flex-grow p-4 md:p-6 animate-fade-in">
-        {% block content %}{% endblock %}
+     
+
+      <main class="flex-grow px-4 md:px-8 py-8 animate-fade-in">
+         {% block content %}
+         {% endblock %}
       </main>
 
-      <footer class="bg-white text-center p-4 text-sm text-gray-500 border-t animate-fade-in">
-        &copy; {{ now|date:"Y" }} Jahangirnagar University Club Management System
+      <footer class="footer p-10 bg-base-200 text-base-content border-t">
+        <div>
+          <div class="flex items-center mb-4">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-1 rounded-lg mr-3">
+              <div class="bg-white p-1 rounded">
+                <i class="fa-solid fa-users text-indigo-600 text-xl"></i>
+              </div>
+            </div>
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">JUClubs</span>
+          </div>
+          <p class="max-w-xs">Jahangirnagar University's premier platform<br>for student organizations and activities</p>
+        </div> 
+        <div>
+          <span class="footer-title">Quick Links</span> 
+          <a class="footer-links link link-hover">All Clubs</a> 
+          <a class="footer-links link link-hover">Upcoming Events</a> 
+          <a class="footer-links link link-hover">Club Resources</a> 
+          <a class="footer-links link link-hover">Leadership Portal</a>
+        </div> 
+        <div>
+          <span class="footer-title">Support</span> 
+          <a class="footer-links link link-hover">Contact Us</a> 
+          <a class="footer-links link link-hover">FAQs</a> 
+          <a class="footer-links link link-hover">Help Center</a> 
+          <a class="footer-links link link-hover">Feedback</a>
+        </div> 
+        <div>
+          <span class="footer-title">Legal</span> 
+          <a class="footer-links link link-hover">Terms of use</a> 
+          <a class="footer-links link link-hover">Privacy policy</a> 
+          <a class="footer-links link link-hover">Cookie policy</a>
+        </div>
+        <div>
+          <span class="footer-title">Newsletter</span> 
+          <div class="form-control w-80">
+            <label class="label">
+              <span class="label-text">Stay updated with campus activities</span>
+            </label> 
+            <div class="relative">
+              <input type="text" placeholder="your.email@juniv.edu" class="input input-bordered w-full pr-16 search-input" /> 
+              <button class="btn btn-primary absolute top-0 right-0 rounded-l-none">Subscribe</button>
+            </div>
+          </div>
+        </div>
+      </footer>
+      <footer class="footer px-10 py-4 border-t bg-base-200 text-base-content border-base-300">
+        <div class="items-center grid-flow-col">
+          <p>&copy; {{ now|date:"Y" }} Jahangirnagar University Club Management System. All rights reserved.</p>
+        </div> 
+        <div class="md:place-self-center md:justify-self-end">
+          <div class="grid grid-flow-col gap-4">
+            <a><i class="fa-brands fa-facebook text-2xl text-blue-600"></i></a> 
+            <a><i class="fa-brands fa-twitter text-2xl text-sky-400"></i></a> 
+            <a><i class="fa-brands fa-instagram text-2xl text-pink-600"></i></a>
+            <a><i class="fa-brands fa-linkedin text-2xl text-blue-700"></i></a>
+          </div>
+        </div>
       </footer>
     </div>
 
+    <!-- Mobile Drawer -->
     <div class="drawer-side z-50">
       <label for="my-drawer" class="drawer-overlay"></label>
       <div class="flex flex-col justify-between h-full w-80 bg-base-200 relative">
-        <label for="my-drawer" class="absolute bg-red-600 rounded-full text-white p-2 right-4 top-4 cursor-pointer hover:bg-white hover:text-red-600 transition-colors">
-          <i class="fa-solid fa-xmark text-xl"></i>
+        <label for="my-drawer" class="absolute top-4 right-4 cursor-pointer hover:scale-110 transition-transform">
+          <i class="fa-solid fa-xmark text-2xl text-gray-600"></i>
         </label>
 
-        <ul class="menu p-4 flex-grow space-y-2 mt-16">
-          <li><a href="{% url 'list' %}" class="nav-link"><i class="fa-solid fa-house mr-2"></i>Home</a></li>
-          <li><a href="#" class="nav-link"><i class="fa-solid fa-users mr-2"></i>Members</a></li>
-          <li><a href="#" class="nav-link"><i class="fa-solid fa-calendar-days mr-2"></i>Events</a></li>
-        </ul>
+        <div class="p-4 mt-16">
+          <div class="flex items-center mb-8 px-4">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-1 rounded-lg mr-3">
+              <img src="{% static 'images/logo-ju-small.png' %}" alt="JU Logo" class="w-10 h-10 rounded">
+            </div>
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">JUClubs</span>
+          </div>
+          
+          <ul class="menu p-4 flex-grow space-y-2">
+            <li><a href="{% url 'home' %}" class="nav-link active-nav"><i class="fa-solid fa-house mr-2"></i>Home</a></li>
+            <li><a href="#" class="nav-link"><i class="fa-solid fa-users mr-2"></i>Members</a></li>
+            <li><a href="#" class="nav-link"><i class="fa-solid fa-calendar-days mr-2"></i>Events</a></li>
+            <li><a href="#" class="nav-link"><i class="fa-solid fa-trophy mr-2"></i>Achievements</a></li>
+            <li><a href="#" class="nav-link"><i class="fa-solid fa-newspaper mr-2"></i>News</a></li>
+          </ul>
+        </div>
 
         <div class="p-4 border-t border-base-300 animate-fade-in">
           {% if not user.is_authenticated %}
@@ -274,6 +458,12 @@
             <ul class="menu space-y-1">
               <li><a href="{% url 'admin_panel:admin_login_view' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-user-shield mr-2"></i>Admin Login</a></li>
               <li><a href="{% url 'user:login' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-users mr-2"></i>User Login</a></li>
+              <li><a href="{% url 'clubs:login' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-building-user mr-2"></i>Club Login</a></li>
+            </ul>
+            <div class="divider my-2"></div>
+            <ul class="menu space-y-1">
+              <li><a href="{% url 'user:signup' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-user-plus mr-2"></i>User Sign Up</a></li>
+              <li><a href="{% url 'clubs:register' %}" class="hover:bg-indigo-50 transition-colors"><i class="fa-solid fa-building mr-2"></i>Club Registration</a></li>
             </ul>
           {% else %}
             <div class="flex flex-col gap-2">
@@ -290,6 +480,7 @@
   </div>
 
   <script>
+    // Auto-dismiss messages after 5 seconds
     setTimeout(() => {
       document.querySelectorAll('.alert').forEach(alert => {
         alert.style.opacity = '0';
@@ -297,6 +488,7 @@
       });
     }, 5000);
 
+    // Theme toggle functionality
     document.addEventListener('DOMContentLoaded', () => {
       const themeToggle = document.querySelector('.theme-controller');
       const currentTheme = localStorage.getItem('theme') || 'light';
@@ -320,6 +512,16 @@
         });
         link.addEventListener('mouseleave', () => {
           link.style.transform = 'translateY(0)';
+        });
+      });
+      
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+          });
         });
       });
     });
