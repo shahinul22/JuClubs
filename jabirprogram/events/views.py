@@ -3,21 +3,34 @@ from django.utils import timezone
 from django.contrib import messages
 from .models import Event, EventRegistration
 from .forms import EventForm, EventRegistrationForm
-from clubs.models import Club  # To get club info for events
+from clubs.models import Club
+from user.decorators import user_login_required
+from clubs.decorators import club_login_required
 
-# List events of a club
+
+@club_login_required
+def club_profile_tab_view(request, tab='about'):
+    club = request.club
+    return render(request, 'clubs/profile.html', {
+        'club': club,
+        'active_tab': tab,
+    })
+
+
+@user_login_required
 def club_events_list(request, club_id):
     club = get_object_or_404(Club, id=club_id)
     events = Event.objects.filter(club=club).order_by('date_time')
-    context = {
+    return render(request, 'events/club_events_list.html', {
         'club': club,
         'events': events,
-    }
-    return render(request, 'events/club_events_list.html', context)
+    })
 
-# Create event for a club
+
+@club_login_required
 def create_event_view(request, club_id):
     club = get_object_or_404(Club, id=club_id)
+
     if request.method == 'POST':
         form = EventForm(request.POST, request.FILES)
         if form.is_valid():
@@ -28,13 +41,19 @@ def create_event_view(request, club_id):
             return redirect('events:club_events_list', club_id=club.id)
     else:
         form = EventForm()
-    return render(request, 'events/create_event.html', {'form': form, 'club': club})
 
-# Register for event
+    return render(request, 'events/create_event.html', {
+        'form': form,
+        'club': club,
+    })
+
 def event_registration_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
 
-    # Check if registration is open (optional, depends on your logic)
+    if event.visibility != 'public':
+        messages.error(request, 'This event is not open to public registration.')
+        return redirect('events:club_events_list', club_id=event.club.id)
+
     if not event.is_registration_open():
         messages.error(request, 'Registration for this event is closed.')
         return redirect('events:club_events_list', club_id=event.club.id)
@@ -50,14 +69,20 @@ def event_registration_view(request, event_id):
     else:
         form = EventRegistrationForm()
 
-    return render(request, 'events/event_registration.html', {'form': form, 'event': event})
+    return render(request, 'events/event_registration.html', {
+        'form': form,
+        'event': event,
+    })
 
 
-# events/views.py
-
-from django.shortcuts import render, get_object_or_404
-from .models import Event
 
 def event_detail_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    return render(request, 'events/event_detail.html', {'event': event})
+
+    if event.visibility != 'public':
+        messages.error(request, 'This event is not available for public viewing.')
+        return redirect('events:club_events_list', club_id=event.club.id)
+
+    return render(request, 'events/event_detail.html', {
+        'event': event,
+    })

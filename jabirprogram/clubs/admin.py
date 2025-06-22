@@ -52,3 +52,15 @@ class ClubRegistrationAdmin(admin.ModelAdmin):
     search_fields = ('club_name', 'club_username')
     list_filter = ('is_approved', 'submitted_at')
     readonly_fields = ('submitted_at', 'reviewed_at')
+
+
+from django.contrib import admin
+from .models import ClubMemberRequest
+
+@admin.register(ClubMemberRequest)
+class ClubMemberRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'club', 'requested_at', 'is_approved')
+    list_filter = ('is_approved', 'requested_at', 'club')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'club__name')
+    date_hierarchy = 'requested_at'
+    ordering = ('-requested_at',)

@@ -145,6 +145,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# # settings.py
+# AUTH_USER_MODEL = 'user.User'  # Point to your custom User model
+# LOGIN_URL = '/user/login/'  # Your custom login URL
 
 
 # Development email backend (prints emails to the console)

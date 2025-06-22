@@ -9,6 +9,7 @@ class User(models.Model):
     email = models.EmailField(unique=True)
     batch = models.CharField(max_length=10)
     session = models.CharField(max_length=20)
+    phone = models.CharField(max_length=20, blank=True)
     department = models.CharField(max_length=100)
     date_joined = models.DateTimeField(default=timezone.now)
     is_approved = models.BooleanField(default=True)

@@ -5,6 +5,9 @@ from django.utils import timezone
 from .forms import ClubRegistrationForm
 from .models import Club, ClubRegistration
 from events.models import Event  # make sure this model exists
+from user.decorators import user_login_required
+from clubs.decorators import club_login_required
+
 
 # =======================
 # Utility Views
@@ -225,7 +228,7 @@ def club_profile_members(request, club_id):
         'club': club,
         'members': members,
         'is_admin': is_admin,
-        'memberships':memberships,
+        'memberships': memberships,
     })
 
 # clubs/views.py
@@ -239,3 +242,115 @@ def public_club_profile_view(request, club_id):
     return render(request, 'clubs/profile.html', {
         'club': club
     })
+
+from .forms import ClubAdvisorForm
+
+
+@club_login_required
+def add_advisor_view(request):
+    if request.method == 'POST':
+        form = ClubAdvisorForm(request.POST, request.FILES)
+        if form.is_valid():
+            advisor = form.save(commit=False)
+            advisor.club = request.club
+            advisor.save()
+            messages.success(request, "Advisor added successfully.")
+            return redirect('clubs:club_profile_about')
+    else:
+        form = ClubAdvisorForm()
+    return render(request, 'clubs/add_advisor.html', {'form': form})
+
+@club_login_required
+def edit_advisor_view(request, advisor_id):
+    advisor = get_object_or_404(ClubAdvisor, id=advisor_id, club=request.club)
+
+    if request.method == 'POST':
+        form = ClubAdvisorForm(request.POST, request.FILES, instance=advisor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Advisor updated successfully.")
+            return redirect('clubs:club_profile_about')
+    else:
+        form = ClubAdvisorForm(instance=advisor)
+
+    return render(request, 'clubs/edit_advisor.html', {
+        'form': form,
+        'advisor': advisor,
+    })
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import Member, ClubMembership, Club
+from .forms import MembershipForm
+
+def member_profile_view(request, club_id, member_id):
+    club = get_object_or_404(Club, id=club_id)
+    member = get_object_or_404(Member, id=member_id)
+    membership = get_object_or_404(ClubMembership, club=club, member=member)
+
+    return render(request, 'clubs/member_profile.html', {
+        'club': club,
+        'member': member,
+        'membership': membership,
+    })
+
+
+from django.views.decorators.http import require_http_methods
+from .models import ClubMembership
+from .forms import ClubMembershipForm
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import ClubMembership
+
+def edit_membership_view(request, membership_id):
+    membership = get_object_or_404(ClubMembership, id=membership_id)
+    club = membership.club
+    member = membership.member
+
+    # Your form logic here, e.g.
+    if request.method == 'POST':
+        form = MembershipForm(request.POST, instance=membership)
+        if form.is_valid():
+            form.save()
+            return redirect('clubs:member_profile', club.id, member.id)
+    else:
+        form = MembershipForm(instance=membership)
+
+    return render(request, 'clubs/edit_membership.html', {
+        'form': form,
+        'club': club,
+        'member': member,
+    })
+
+@require_http_methods(["POST"])
+@club_login_required
+def leave_membership_view(request, membership_id):
+    membership = get_object_or_404(ClubMembership, id=membership_id, club=request.club)
+    membership.is_active = False
+    membership.save()
+    messages.success(request, 'Member marked as left.')
+    return redirect('clubs:club_profile_members', club_id=request.club.id)
+
+
+def edit_membership_view(request, membership_id):
+    membership = ClubMembership.objects.get(id=membership_id)
+    member = membership.member
+
+    if request.method == 'POST':
+        member_form = MemberForm(request.POST, request.FILES, instance=member)
+        membership_form = MembershipForm(request.POST, instance=membership)
+        if member_form.is_valid() and membership_form.is_valid():
+            member_form.save()
+            membership_form.save()
+            return redirect('clubs:member_profile', club_id=membership.club.id, member_id=member.id)
+
+    else:
+        member_form = MemberForm(instance=member)
+        membership_form = MembershipForm(instance=membership)
+
+    context = {
+        'member_form': member_form,
+        'membership_form': membership_form,
+        'membership': membership,
+    }
+    return render(request, 'clubs/edit_membership.html', context)

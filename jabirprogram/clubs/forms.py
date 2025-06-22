@@ -70,7 +70,7 @@ class ClubPasswordChangeForm(forms.Form):
         
         return cleaned_data
 from django import forms
-from .models import Member, ClubMembership
+from .models import Member, ClubMembership, ClubAdvisor
 
 class MemberForm(forms.ModelForm):
     class Meta:
@@ -93,3 +93,44 @@ class ClubMembershipForm(forms.ModelForm):
     def clean_roles(self):
         roles = self.cleaned_data['roles']
         return ",".join(roles)  # Store as comma-separated string
+
+
+from django import forms
+from .models import ClubAdvisor
+
+class ClubAdvisorForm(forms.ModelForm):
+    class Meta:
+        model = ClubAdvisor
+        fields = ['name', 'contact', 'email', 'department', 'photo', 'is_primary']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
+            'contact': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
+            'email': forms.EmailInput(attrs={'class': 'input input-bordered w-full'}),
+            'department': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
+            'photo': forms.FileInput(attrs={'class': 'file-input file-input-bordered w-full'}),
+        }
+
+
+class ClubMembershipForm(forms.ModelForm):
+    class Meta:
+        model = ClubMembership
+        fields = ['roles']
+
+from django import forms
+from .models import ClubMembership
+
+from django import forms
+from .models import ClubMembership
+
+class MembershipForm(forms.ModelForm):
+    class Meta:
+        model = ClubMembership
+        fields = '__all__'  # includes all fields of ClubMembership
+
+from django import forms
+from .models import Member
+
+class MemberForm(forms.ModelForm):
+    class Meta:
+        model = Member
+        fields = '__all__'  # edit all member fields

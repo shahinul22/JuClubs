@@ -3,6 +3,18 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from user.models import User
+from user.decorators import user_login_required
+from clubs.decorators import club_login_required
+
+@club_login_required
+def club_profile_tab_view(request, tab='about'):
+    club = request.club  # club is set in the decorator
+    ...
+
+
+@user_login_required
+def club_profile_tab_view(request, tab='about'):
+    ...
 
 def admin_login_view(request):
     if request.user.is_authenticated and request.user.is_superuser:

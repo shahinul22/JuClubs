@@ -4,12 +4,19 @@ from .forms import PostForm, CommentForm
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
-from user.decorators import login_required_custom
+
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 
 from django.contrib.auth.models import User  # assuming default user model
 from user.models import User
+from user.decorators import user_login_required
+from clubs.decorators import club_login_required
+
+@club_login_required
+def club_profile_tab_view(request, tab='about'):
+    club = request.club  # club is set in the decorator
+    ...
 
 def post_list_view(request):
     user_id = request.session.get('user_id')
@@ -45,7 +52,7 @@ from .forms import PostForm
 
 from user.models import User
 
-@login_required_custom  # your custom login_required decorator
+@user_login_required  # your custom login_required decorator
 def create_post(request):
     user_id = request.session.get('user_id')
     if not user_id:
@@ -65,7 +72,7 @@ def create_post(request):
         form = PostForm()
     return render(request, 'posts/post_form.html', {'form': form})
 
-@login_required_custom
+@user_login_required
 def edit_post(request, post_id):
     post = get_object_or_404(Post, id=post_id, user=request.user)
     if request.method == 'POST':
@@ -77,7 +84,7 @@ def edit_post(request, post_id):
         form = PostForm(instance=post)
     return render(request, 'posts/post_form.html', {'form': form, 'edit': True})
 
-@login_required_custom
+@user_login_required
 def delete_post(request, post_id):
     post = get_object_or_404(Post, id=post_id, user=request.user)
     if request.method == 'POST':
@@ -91,7 +98,7 @@ from .models import Post, Like, Comment
 from django.shortcuts import get_object_or_404
 from user.models import User  # import your custom User model
 
-@login_required_custom
+@user_login_required
 @require_POST
 def toggle_like(request, post_id):
     user = request.user
@@ -114,7 +121,7 @@ def toggle_like(request, post_id):
     return JsonResponse({'liked': liked_status, 'likes_count': likes_count})
 
 
-@login_required_custom
+@user_login_required
 @require_POST
 def add_comment(request, post_id):
     user = request.user
@@ -142,7 +149,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Comment
 
-@login_required_custom
+@user_login_required
 def delete_comment(request, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
 

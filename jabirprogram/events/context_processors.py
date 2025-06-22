@@ -55,9 +55,14 @@ def current_month_events_count(request):
 from .models import Event
 from django.utils import timezone
 
+# yourapp/context_processors.py
+from .models import Event
+from django.utils import timezone
+
 def upcoming_events_processor(request):
     upcoming_events = Event.objects.filter(
-        date_time__gte=timezone.now()
+        date_time__gte=timezone.now(),
+        visibility='public'  # Only public events
     ).order_by('date_time')[:4]  # get next 4 upcoming events
 
     return {

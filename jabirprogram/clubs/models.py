@@ -2,22 +2,6 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
 
-# === Master Member Table ===
-class Member(models.Model):
-    name = models.CharField(max_length=255)
-    student_id = models.CharField(max_length=50)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    session = models.CharField(max_length=20, blank=True, null=True)
-    department = models.CharField(max_length=255, default='Not Specified')
-    photo = models.ImageField(upload_to='member_photos/', blank=True, null=True)
-
-    class Meta:
-        unique_together = ('student_id', 'email')
-
-    def __str__(self):
-        return f"{self.name} ({self.student_id})"
-
 
 # === Approved Clubs ===
 from django.db import models
@@ -51,14 +35,88 @@ class Club(models.Model):
         return self.name
 
 
+
+# === Master Member Table ===
+class Member(models.Model):
+    name = models.CharField(max_length=255)
+    student_id = models.CharField(max_length=50)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    session = models.CharField(max_length=20, blank=True, null=True)
+    department = models.CharField(max_length=255, default='Not Specified')
+    photo = models.ImageField(upload_to='member_photos/', blank=True, null=True)
+
+    class Meta:
+        unique_together = ('student_id', 'email')
+
+    def __str__(self):
+        return f"{self.name} ({self.student_id})"
+
+
+
+
 # === Club Member Roles ===
 class ClubMembership(models.Model):
     ROLE_CHOICES = (
+        # Core Executive Team
         ('president', 'President'),
+        ('vice_president', 'Vice President'),
         ('secretary', 'Secretary'),
-        ('organizing_secretary', 'Organizing Secretary'),
+        ('joint_secretary', 'Joint Secretary'),
+        ('assistant_secretary', 'Assistant Secretary'),
+        ('organizing_secretary', 'Organizing Secretary'),    
+        ('treasurer', 'Treasurer'),
+        ('financial_controller', 'Financial Controller'),
+
+        # Operational Roles
+        ('event_manager', 'Event Manager'),
+        ('event_coordinator', 'Event Coordinator'),
+        ('logistics_head', 'Logistics Head'),
+        ('operations_manager', 'Operations Manager'),
+
+        # Communications
+        ('pr_officer', 'Public Relations Officer'),
+        ('communications_officer', 'Communications Officer'),
+        ('media_coordinator', 'Media Coordinator'),
+        ('social_media_manager', 'Social Media Manager'),
+
+        # Creative & Technical
+        ('creative_director', 'Creative Director'),
+        ('design_head', 'Design Head'),
+        ('technical_head', 'Technical Head'),
+        ('content_creator', 'Content Creator'),
+        ('graphic_designer', 'Graphic Designer'),
+        ('webmaster', 'Webmaster'),
+        ('photographer', 'Photographer'),
+        ('videographer', 'Videographer'),
+
+        # Membership & Outreach
+        ('membership_coordinator', 'Membership Coordinator'),
+        ('outreach_coordinator', 'Outreach Coordinator'),
+        ('partnership_coordinator', 'Partnership Coordinator'),
+        ('fundraising_officer', 'Fundraising Officer'),
+        ('alumni_relations', 'Alumni Relations Officer'),
+
+        # Specialized Departments
+        ('cultural_secretary', 'Cultural Secretary'),
+        ('sports_secretary', 'Sports Secretary'),
+        ('academic_head', 'Academic Head'),
+        ('research_head', 'Research Head'),
+        ('training_head', 'Training Head'),
+        ('welfare_officer', 'Welfare Officer'),
+        ('equity_officer', 'Equity Officer'),
+
+        # Advisory & Support
+        ('faculty_advisor', 'Faculty Advisor'),
+        ('mentor', 'Mentor'),
+        ('legal_advisor', 'Legal Advisor'),
+        ('auditor', 'Auditor'),
+
+        # General Roles
+        ('project_manager', 'Project Manager'),
+        ('volunteer_coordinator', 'Volunteer Coordinator'),
         ('general_member', 'General Member'),
-        # Add more roles here...
+        ('executive_member', 'Executive Member'),
     )
 
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='memberships')
@@ -96,6 +154,7 @@ class ClubAdvisor(models.Model):
     email = models.EmailField(blank=True)
     department = models.CharField(max_length=255, blank=True)
     is_primary = models.BooleanField(default=False)
+    photo = models.ImageField(upload_to='advisor_photos/', blank=True, null=True)  # 👈 add this line
 
     def __str__(self):
         return f"{self.name} (Advisor - {self.club.name})"
@@ -232,3 +291,19 @@ class ClubRegistration(models.Model):
         self.approved_club = club
         self.reviewed_at = timezone.now()
         self.save()
+
+
+
+
+from django.db import models
+from user.models import User
+from clubs.models import Club
+
+class ClubMemberRequest(models.Model):
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='member_requests')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.full_name} -> {self.club.name}"

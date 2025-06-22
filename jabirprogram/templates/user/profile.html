@@ -20,6 +20,8 @@
     <li><strong>Session:</strong> {{ user.session }}</li>
     <li><strong>Department:</strong> {{ user.department }}</li>
   </ul>
+
+
   <a href="{% url 'user:edit_profile' %}" class="btn btn-primary mt-6">Edit Profile</a>
 </div>
 {% endblock %}

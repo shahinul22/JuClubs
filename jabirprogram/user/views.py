@@ -4,6 +4,12 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 import random
+from clubs.decorators import club_login_required
+
+@club_login_required
+def club_profile_tab_view(request, tab='about'):
+    club = request.club  # club is set in the decorator
+    ...
 
 from .models import User
 
@@ -191,3 +197,12 @@ def edit_profile_view(request):
         return redirect('user:profile')
 
     return render(request, 'user/edit_profile.html', {'user': user})
+
+
+
+from clubs.models import Club
+
+def user_profile_view(request):
+    user = request.user
+    clubs = Club.objects.filter(is_active=True)
+    return render(request, 'user/profile.html', {'user': user, 'clubs': clubs})

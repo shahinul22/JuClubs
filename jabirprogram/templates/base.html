@@ -293,8 +293,8 @@
                     <li><a href="{% url 'user:logout' %}"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Logout</a></li>
                   {% elif logged_club %}
                     <li><a href="{% url 'clubs:club_profile_about' %}"><i class="fa-solid fa-building-user mr-2"></i>Club Profile</a></li>            
-                    <li><a href="#"><i class="fa-solid fa-calendar mr-2"></i>Manage Events</a></li>
-                    <li><a href="#"><i class="fa-solid fa-users mr-2"></i>Manage Members</a></li>
+                    <li><a href="{% url 'clubs:club_profile_events' %}?club_id={{ club.id }}"><i class="fa-solid fa-calendar mr-2"></i>Manage Events</a></li>
+                    <li><a href="{% url 'clubs:club_profile_members' %}?club_id={{ club.id }}"><i class="fa-solid fa-users mr-2"></i>Manage Members</a></li>
                     <li><a href="{% url 'clubs:club_logout' %}"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Logout</a></li>
                   {% endif %}
                 </ul>
@@ -381,8 +381,8 @@
         </div> 
         <div>
           <span class="footer-title">Quick Links</span> 
-          <a class="footer-links link link-hover">All Clubs</a> 
-          <a class="footer-links link link-hover">Upcoming Events</a> 
+          <a  class="footer-links link link-hover">All Clubs</a> 
+          <a href="#events" class="footer-links link link-hover">Upcoming Events</a> 
           <a class="footer-links link link-hover">Club Resources</a> 
           <a class="footer-links link link-hover">Leadership Portal</a>
         </div> 
