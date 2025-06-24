@@ -37,3 +37,24 @@ def featured_clubs(request):
     return {
         'featured_clubs': clubs
     }
+
+
+from clubs.models import Club, ClubMembership, ClubRegistration
+
+def club_members_context(request):
+    context = {}
+
+    # Check if the club is logged in via session
+    username = request.session.get('club_username')
+    if username:
+        try:
+            registration = ClubRegistration.objects.get(club_username=username, is_approved=True)
+            club = registration.approved_club
+            if club:
+                members = ClubMembership.objects.filter(club=club, is_active=True).select_related('member').order_by('member__name')
+                context['club_logged_in'] = club
+                context['club_members'] = members
+        except ClubRegistration.DoesNotExist:
+            pass
+
+    return context

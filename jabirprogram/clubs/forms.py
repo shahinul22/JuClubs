@@ -1,7 +1,5 @@
 from django import forms
 from .models import ClubRegistration
-from django import forms
-from .models import ClubRegistration
 
 class ClubRegistrationForm(forms.ModelForm):
     club_password = forms.CharField(widget=forms.PasswordInput)
@@ -13,9 +11,20 @@ class ClubRegistrationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
+            label = field.label if field.label else field_name.replace('_', ' ')
+
+            # Special case for date field
+            if field_name == 'date_established':
+                placeholder = 'YYYY-MM-DD'
+                field.widget.input_type = 'date'  # optional: show date picker
+            else:
+                placeholder = f'Enter {label.lower()}'
+
             field.widget.attrs.update({
-                'class': 'w-full border border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
+                'class': 'w-full border border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
+                'placeholder': placeholder
             })
+
 
 from django import forms
 from .models import Club

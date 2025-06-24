@@ -1,71 +1,43 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}{{ edit|yesno:"Edit Post,Create Post" }} | JU Clubs{% endblock %}
 
 {% block content %}
-<h2>{{ edit|default_if_none:False|yesno:"Edit Post,Create Post" }}</h2>
+<div class="max-w-xl mx-auto mt-10 px-4">
+  <div class="card bg-base-100 shadow-lg border">
+    <div class="card-body">
+      <h2 class="text-xl font-bold mb-4">
+        {% if edit %}Edit Post{% else %}Create a Post{% endif %}
+      </h2>
 
-<form method="post" enctype="multipart/form-data" class="max-w-lg mx-auto mt-6">
-  {% csrf_token %}
+      <form method="post" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
 
-  {{ form.content.label_tag }}
-  {{ form.content }}
+        <div>
+          {{ form.content.label_tag }}
+          {{ form.content|add_class:"textarea textarea-bordered w-full" }}
+          {% for error in form.content.errors %}<p class="text-red-500 text-sm">{{ error }}</p>{% endfor %}
+        </div>
 
-  {{ form.image.label_tag }}
-  {{ form.image }}
+        <div>
+          <label for="id_images" class="block font-semibold mb-1">Images</label>
+          <input type="file" name="images" id="id_images" multiple class="file-input file-input-bordered w-full" />
+        </div>
 
-  <!-- Location input with geolocation button -->
-  <label for="id_location" class="block font-semibold mt-4 mb-1">Location</label>
-  <div class="flex gap-2 mb-4">
-    <input
-      type="text"
-      id="id_location"
-      name="location"
-      value="{{ form.location.value|default_if_none:'' }}"
-      placeholder="Your location"
-      class="input input-bordered flex-grow"
-    />
-    <button type="button" id="get-location-btn" class="btn btn-sm btn-secondary">Use My Location</button>
+        <div>
+          {{ form.location.label_tag }}
+          {{ form.location|add_class:"input input-bordered w-full" }}
+          {% for error in form.location.errors %}<p class="text-red-500 text-sm">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="text-right">
+          <button type="submit" class="btn btn-primary">
+            {% if edit %}Update{% else %}Post{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
-
-  <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-
-<script>
-document.getElementById('get-location-btn').addEventListener('click', () => {
-  const locationInput = document.getElementById('id_location');
-
-  if (!navigator.geolocation) {
-    alert('Geolocation is not supported by your browser');
-    return;
-  }
-
-  locationInput.value = 'Locating...';
-
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.address) {
-            const city = data.address.city || data.address.town || data.address.village || '';
-            const state = data.address.state || '';
-            const country = data.address.country || '';
-            locationInput.value = [city, state, country].filter(Boolean).join(', ');
-          } else {
-            locationInput.value = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
-          }
-        })
-        .catch(() => {
-          locationInput.value = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
-        });
-    },
-    (error) => {
-      alert('Unable to retrieve your location');
-      locationInput.value = '';
-    }
-  );
-});
-</script>
+</div>
 {% endblock %}

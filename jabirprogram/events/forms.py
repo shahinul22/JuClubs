@@ -33,7 +33,7 @@ from .models import EventRegistration
 class EventRegistrationForm(forms.ModelForm):
     class Meta:
         model = EventRegistration
-        fields = ['full_name', 'email', 'phone', 'affiliation', 'custom_answers']
+        fields = ['full_name', 'email', 'phone']
         widgets = {
             'custom_answers': forms.Textarea(attrs={'rows': 3}),
         }

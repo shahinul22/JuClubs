@@ -57,6 +57,8 @@ def club_login_view(request):
 
     return render(request, 'clubs/club_login.html')
 
+
+
 def club_logout_view(request):
     request.session.flush()
     return redirect('clubs:login')
@@ -70,9 +72,15 @@ from clubs.models import ClubRegistration, Club
 from events.models import Event
 from django.utils import timezone
 
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
+from django.utils import timezone
+
+from clubs.models import Club, ClubRegistration, ClubMembership
+from events.models import Event
+
 
 def club_profile_tab_view(request, tab):
-    # First: check if club is logged in (via session)
     username = request.session.get('club_username')
     club = None
     club_reg = None
@@ -88,13 +96,13 @@ def club_profile_tab_view(request, tab):
                     'active_tab': tab,
                     'events': [],
                     'upcoming_events': [],
+                    'memberships': [],  # still send empty list
                 })
             club = club_reg.approved_club
         except ClubRegistration.DoesNotExist:
             messages.error(request, "Club registration not found.")
             return redirect('clubs:register')
     else:
-        # fallback for regular logged-in user (accessing via ?club_id=1)
         club_id = request.GET.get('club_id')
         if not club_id:
             messages.error(request, "Invalid or missing club.")
@@ -106,6 +114,13 @@ def club_profile_tab_view(request, tab):
     upcoming_events = Event.objects.filter(club=club, date_time__gte=timezone.now()).order_by('date_time')[:2]
     events = Event.objects.filter(club=club).order_by('date_time') if tab == 'events' else []
 
+    # Executive Members
+    all_memberships = ClubMembership.objects.filter(club=club, is_active=True).select_related('member')
+    executive_roles = ['president', 'secretary', 'organizing_secretary']
+    memberships = [
+        m for m in all_memberships if any(role in m.get_roles_list() for role in executive_roles)
+    ]
+
     context = {
         'club': club,
         'club_registration': club_reg,
@@ -113,6 +128,7 @@ def club_profile_tab_view(request, tab):
         'status': 'approved',
         'upcoming_events': upcoming_events,
         'events': events,
+        'memberships': memberships,  # 👈 added here
     }
 
     return render(request, 'clubs/profile.html', context)

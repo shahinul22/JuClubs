@@ -3,55 +3,133 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto mt-6">
-  {% csrf_token %}
+  <div class="flex justify-end max-w-4xl mx-auto mt-6">
+  <a href="{% url 'posts:create' %}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus mr-1"></i> Create Post
+  </a>
+</div>
 
-  {% for post in page_obj %}
-  <div class="post border rounded-lg p-5 mb-6 shadow bg-white" data-post-id="{{ post.id }}">
 
-    <!-- Header: Username, Time, Location -->
-    <div class="mb-3">
-      <p class="font-semibold text-lg">{{ post.user.user_username }}</p>
-      <p class="text-sm text-gray-500">
-        {{ post.created_at|date:"F j, Y · g:i A" }}
-        {% if post.location %} · {{ post.location }}{% endif %}
-      </p>
-    </div>
-
-    <!-- Post Content -->
-    {% if post.content %}
-      <p class="mb-3 text-base">{{ post.content }}</p>
-    {% endif %}
-
-    <!-- Image -->
-    {% if post.image %}
-      <img src="{{ post.image.url }}" alt="Post image" class="rounded-lg w-full max-h-[500px] object-cover mb-4" />
-    {% endif %}
-    
-
-    <!-- Like Button -->
-    <button class="like-btn btn btn-sm btn-outline mb-3"
-      data-liked="{% if post.id in liked_post_ids %}true{% else %}false{% endif %}">
-      {% if post.id in liked_post_ids %}Unlike{% else %}Like{% endif %}
-      (<span class="like-count">{{ post.likes.count }}</span>)
-    </button>
-
-    <!-- Comments -->
-    <div class="comments space-y-1 mb-3">
-      {% for comment in post.comments.all %}
-        <p class="text-sm"><strong>{{ comment.user.user_username }}:</strong> {{ comment.text }}</p>
-      {% endfor %}
-    </div>
-
-    <!-- Comment Form -->
-    <form class="comment-form flex gap-2" method="post">
-      <input type="text" name="text" placeholder="Add a comment..." required
-             class="input input-bordered w-full text-sm" />
-      <button type="submit" class="btn btn-primary btn-sm">Comment</button>
-    </form>
+  <div class="flex gap-2 justify-center my-4">
+    <a href="{% url 'posts:list' %}?filter=all" class="btn btn-sm {% if not request.GET.filter %}btn-primary{% else %}btn-outline{% endif %}">All</a>
+    <a href="{% url 'posts:list' %}?filter=user" class="btn btn-sm {% if request.GET.filter == 'user' %}btn-primary{% else %}btn-outline{% endif %}">User Posts</a>
+    <a href="{% url 'posts:list' %}?filter=club" class="btn btn-sm {% if request.GET.filter == 'club' %}btn-primary{% else %}btn-outline{% endif %}">Club Posts</a>
   </div>
-  {% empty %}
-  <p class="text-center text-gray-600 mt-10">No posts available.</p>
-  {% endfor %}
+
+  <div class="posts-container">
+    {% for post in page_obj %}
+      <div class="post border rounded-lg p-5 mb-6 shadow bg-white" data-post-id="{{ post.id }}">
+
+        <!-- Header: Avatar + Name + Role + Time + Location -->
+        <div class="flex flex-col mb-3">
+          <div class="flex gap-3 items-center">
+            {% if post.is_superadmin_post %}
+              <i class="fas fa-crown text-yellow-500 text-xl"></i>
+              <span class="font-semibold text-lg ml-1">Superadmin</span>
+            {% elif post.user %}
+              <div class="avatar w-10 h-10 rounded-full overflow-hidden border border-gray-300">
+                {% if post.user.photo %}
+                  <img src="{{ post.user.photo.url }}" alt="User avatar" class="object-cover w-full h-full" />
+                {% else %}
+                  <div class="flex items-center justify-center w-full h-full bg-blue-500 text-white text-lg">👤</div>
+                {% endif %}
+              </div>
+              <span class="font-semibold text-lg">{{ post.user.user_username }}</span>
+            {% elif post.club %}
+              <div class="avatar w-10 h-10 rounded-full overflow-hidden border border-gray-300">
+                {% if post.club.logo %}
+                  <img src="{{ post.club.logo.url }}" alt="Club logo" class="object-cover w-full h-full" />
+                {% else %}
+                  <div class="flex items-center justify-center w-full h-full bg-yellow-500 text-white text-lg">🏛️</div>
+                {% endif %}
+              </div>
+              <span class="font-semibold text-lg">{{ post.club.name }}</span>
+            {% endif %}
+          </div>
+
+          <div class="text-sm text-gray-500 text-left whitespace-nowrap mt-1">
+            {{ post.created_at|date:"F j, Y · g:i A" }}
+            {% if post.location %} · {{ post.location }}{% endif %}
+          </div>
+        </div>
+
+        <!-- Post Content -->
+        {% if post.content %}
+          <p class="mb-4 text-base whitespace-pre-line">{{ post.content }}</p>
+        {% endif %}
+
+        <!-- Images Grid (dynamic max 4, with +X overlay if more) -->
+{% with post.images.all as images %}
+  {% if images %}
+    <div class="mb-4">
+      <div class="grid grid-cols-2 gap-2 rounded-lg overflow-hidden post-images-grid max-h-[24rem] transition-all duration-300 ease-in-out"
+           style="max-height: 10000px;">
+        {% for img in images %}
+          <div class="relative rounded-lg overflow-hidden max-h-96
+                      {% if forloop.counter > 4 %}hidden extra-img{% endif %}">
+            <img src="{{ img.image.url }}" alt="Post image" class="w-full h-full object-cover rounded-lg" />
+            {% if forloop.counter == 4 and images|length > 4 %}
+              <button type="button"
+                      class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-3xl font-bold see-all-overlay cursor-pointer">
+                +{{ images|length|add:"-4" }} see all
+              </button>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  {% endif %}
+{% endwith %}
+
+
+        <!-- Edit/Delete Buttons for Post Owner -->
+        {% if post.user == request.user %}
+          <div class="flex gap-2 mb-3">
+            <a href="{% url 'edit_post' post.id %}" class="btn btn-xs btn-outline">Edit</a>
+            <form method="post" action="{% url 'delete_post' post.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-xs btn-error">Delete</button>
+            </form>
+          </div>
+        {% endif %}
+
+        <!-- Like Button -->
+        <button class="like-btn btn btn-sm btn-outline mb-3"
+          data-liked="{% if post.id in liked_post_ids %}true{% else %}false{% endif %}">
+          {% if post.id in liked_post_ids %}Unlike{% else %}Like{% endif %}
+          (<span class="like-count">{{ post.likes.count }}</span>)
+        </button>
+
+        <!-- Comments -->
+        <div class="comments space-y-1 mb-3 max-h-40 overflow-y-auto">
+          {% for comment in post.comments.all %}
+            <p class="text-sm">
+              <strong>{{ comment.user.user_username }}:</strong> {{ comment.text }}
+
+              {% if comment.user == request.user %}
+                <form method="post" action="{% url 'delete_comment' comment.id %}" class="inline ml-2">
+                  {% csrf_token %}
+                  <button type="submit" class="text-xs text-red-500 hover:underline">Delete</button>
+                </form>
+              {% endif %}
+            </p>
+          {% endfor %}
+        </div>
+
+        <!-- Comment Form -->
+        <form class="comment-form flex gap-2" method="post">
+          {% csrf_token %}
+          <input type="text" name="text" placeholder="Add a comment..." required
+                 class="input input-bordered w-full text-sm" />
+          <button type="submit" class="btn btn-primary btn-sm">Comment</button>
+        </form>
+
+      </div>
+    {% empty %}
+      <p class="text-center text-gray-600 mt-10">No posts available.</p>
+    {% endfor %}
+  </div>
 
   <!-- Pagination -->
   <div class="pagination flex justify-center space-x-3 mt-6">
@@ -69,78 +147,154 @@
       <span class="btn btn-sm btn-disabled">Next</span>
     {% endif %}
   </div>
+
 </div>
 
-<!-- Scripts: Like + Comment AJAX -->
+<!-- Scripts: Like + Comment AJAX + See All toggle -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // Like button AJAX
-  document.querySelectorAll('.like-btn').forEach(button => {
-    button.addEventListener('click', async () => {
-      const postDiv = button.closest('.post');
-      const postId = postDiv.dataset.postId;
-      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-      const response = await fetch(`/posts/${postId}/like-toggle/`, {
-        method: 'POST',
-        headers: {'X-CSRFToken': csrftoken},
+  let currentPage = 2;
+  const loadMoreBtn = document.getElementById('load-more');
+
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set('page', currentPage);
+
+      fetch(url.toString(), {
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.html) {
+          const container = document.querySelector('.posts-container');
+          container.insertAdjacentHTML('beforeend', data.html);
+          currentPage++;
+          if (!data.has_next) loadMoreBtn.style.display = 'none';
+        }
       });
-      const data = await response.json();
-      if (data.liked !== undefined) {
-        button.dataset.liked = data.liked ? "true" : "false";
-        const likedText = data.liked ? 'Unlike' : 'Like';
+    });
+  }
 
-        // Clear text except like-count span
-        button.childNodes.forEach(node => {
-          if (node.nodeType === Node.TEXT_NODE) node.textContent = '';
+  document.addEventListener('DOMContentLoaded', () => {
+    // Like button AJAX
+    document.querySelectorAll('.like-btn').forEach(button => {
+      button.addEventListener('click', async () => {
+        const postDiv = button.closest('.post');
+        const postId = postDiv.dataset.postId;
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        const response = await fetch(`/posts/${postId}/like-toggle/`, {
+          method: 'POST',
+          headers: {'X-CSRFToken': csrftoken},
         });
-        if (button.firstChild.nodeType === Node.TEXT_NODE) {
-          button.firstChild.textContent = likedText + " ";
-        } else {
-          button.insertBefore(document.createTextNode(likedText + " "), button.firstChild);
+        const data = await response.json();
+        if (data.liked !== undefined) {
+          button.dataset.liked = data.liked ? "true" : "false";
+          button.innerHTML = (data.liked ? 'Unlike' : 'Like') + ` (<span class="like-count">${data.likes_count}</span>)`;
         }
+      });
+    });
 
-        let likeCountSpan = button.querySelector('.like-count');
-        if (!likeCountSpan) {
-          likeCountSpan = document.createElement('span');
-          likeCountSpan.classList.add('like-count');
-          button.appendChild(likeCountSpan);
+    // Comment form AJAX
+    document.querySelectorAll('.comment-form').forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const postDiv = form.closest('.post');
+        const postId = postDiv.dataset.postId;
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const textInput = form.querySelector('input[name="text"]');
+        const text = textInput.value.trim();
+
+        if (!text) return;
+
+        const response = await fetch(`/posts/${postId}/comment-add/`, {
+          method: 'POST',
+          headers: {'X-CSRFToken': csrftoken},
+          body: new URLSearchParams({text}),
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          const commentsDiv = postDiv.querySelector('.comments');
+          const newComment = document.createElement('p');
+          newComment.innerHTML = `<strong>${data.username}:</strong> ${data.text}`;
+          commentsDiv.appendChild(newComment);
+          textInput.value = '';
+        } else {
+          alert(data.error || 'Failed to add comment.');
         }
-        likeCountSpan.textContent = `(${data.likes_count})`;
-      }
+      });
+    });
+
+    // See All toggle button
+    document.querySelectorAll('.see-all-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const container = button.previousElementSibling; // the images grid
+        const hiddenImgs = container.querySelectorAll('.extra-img');
+
+        if (hiddenImgs.length === 0) return;
+
+        if (hiddenImgs[0].classList.contains('hidden')) {
+          // Show all extra images
+          hiddenImgs.forEach(img => img.classList.remove('hidden'));
+          button.textContent = 'See Less';
+        } else {
+          // Hide extra images
+          hiddenImgs.forEach(img => img.classList.add('hidden'));
+          button.textContent = 'See All';
+          // Scroll back to top of images grid smoothly
+          container.scrollIntoView({behavior: 'smooth'});
+        }
+      });
+    });
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+  function toggleImages(postDiv) {
+    const grid = postDiv.querySelector('.post-images-grid');
+    const extraImgs = postDiv.querySelectorAll('.extra-img');
+    const overlayBtn = postDiv.querySelector('.see-all-overlay');
+    const seeAllBtn = postDiv.querySelector('.see-all-btn');
+
+    if (!extraImgs.length) return;
+
+    const isCollapsed = extraImgs[0].classList.contains('hidden');
+
+    if (isCollapsed) {
+      // Show all
+      extraImgs.forEach(img => img.classList.remove('hidden'));
+      if (overlayBtn) overlayBtn.style.display = 'none';
+      if (seeAllBtn) seeAllBtn.textContent = 'See Less';
+      // Optional: Remove max height restriction
+      grid.style.maxHeight = '10000px';
+    } else {
+      // Hide extras
+      extraImgs.forEach(img => img.classList.add('hidden'));
+      if (overlayBtn) overlayBtn.style.display = 'flex';
+      if (seeAllBtn) seeAllBtn.textContent = 'See All';
+      // Optional: Limit max height again
+      grid.style.maxHeight = '24rem';
+      // Scroll back to images top smoothly
+      grid.scrollIntoView({behavior: 'smooth'});
+    }
+  }
+
+  // Overlay "+X see all" click
+  document.querySelectorAll('.see-all-overlay').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const postDiv = btn.closest('.post');
+      toggleImages(postDiv);
     });
   });
 
-  // Comment form AJAX
-  document.querySelectorAll('.comment-form').forEach(form => {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const postDiv = form.closest('.post');
-      const postId = postDiv.dataset.postId;
-      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-      const textInput = form.querySelector('input[name="text"]');
-      const text = textInput.value.trim();
-
-      if (!text) return;
-
-      const response = await fetch(`/posts/${postId}/comment-add/`, {
-        method: 'POST',
-        headers: {'X-CSRFToken': csrftoken},
-        body: new URLSearchParams({text}),
-      });
-      const data = await response.json();
-
-      if (data.success) {
-        const commentsDiv = postDiv.querySelector('.comments');
-        const newComment = document.createElement('p');
-        newComment.innerHTML = `<strong>${data.username}:</strong> ${data.text}`;
-        commentsDiv.appendChild(newComment);
-        textInput.value = '';
-      } else {
-        alert(data.error || 'Failed to add comment.');
-      }
+  // "See All" button click below images
+  document.querySelectorAll('.see-all-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const postDiv = btn.closest('.post');
+      toggleImages(postDiv);
     });
   });
 });
+
 </script>
 {% endblock %}

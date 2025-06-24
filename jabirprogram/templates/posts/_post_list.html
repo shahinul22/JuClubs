@@ -5,7 +5,21 @@
     <!-- User, Time, Location -->
     <div class="flex items-center justify-between mb-3">
       <div>
-        <p class="font-semibold text-lg">{{ post.user.user_username }}</p>
+        <p class="font-semibold text-lg flex items-center gap-2">
+  {% if post.is_superadmin_post %}
+    <i class="fas fa-crown text-yellow-500"></i>
+    Superadmin <span class="badge badge-neutral ml-2 text-xs">Admin</span>
+  {% elif post.user %}
+    <i class="fas fa-user text-blue-500"></i>
+    {{ post.user.user_username }} <span class="badge badge-info text-xs ml-1">User</span>
+  {% elif post.club %}
+    <i class="fas fa-university text-orange-500"></i>
+    {{ post.club.name }} <span class="badge badge-warning text-xs ml-1">Club</span>
+  {% endif %}
+</p>
+
+
+
         <p class="text-sm text-gray-500">
           {{ post.created_at|date:"F j, Y, g:i A" }} 
           {% if post.location %} · {{ post.location }}{% endif %}
@@ -19,11 +33,14 @@
     {% endif %}
 
     <!-- Post Image (Single or Multiple) -->
-    {% if post.image %}
-    <div class="flex flex-wrap gap-2 mb-3">
-      <img src="{{ post.image.url }}" alt="Post image" class="w-full md:w-[49%] object-cover rounded-lg max-h-96" />
-    </div>
-    {% endif %}
+    {% if post.images.all %}
+  <div class="grid grid-cols-2 gap-2 mb-3">
+    {% for img in post.images.all %}
+      <img src="{{ img.image.url }}" class="w-full object-cover rounded-lg max-h-96" />
+    {% endfor %}
+  </div>
+{% endif %}
+
 <!-- 👇 Add Edit/Delete buttons here -->
 {% if post.user == request.user %}
   <div class="flex gap-2 mb-3">

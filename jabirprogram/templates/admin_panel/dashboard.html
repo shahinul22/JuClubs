@@ -2,67 +2,73 @@
 {% block title %}Admin Dashboard | JU Clubs{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow">
-  <h1 class="text-3xl font-bold mb-4">Admin Dashboard</h1>
-  <p class="text-gray-600">Welcome, {{ request.user.username }}!</p>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-8">
-    <div class="card bg-base-100 shadow p-4">
-      <h2 class="font-semibold text-lg mb-2">Manage Users</h2>
-      <p class="text-sm text-gray-500">Approve or remove regular users.</p>
-    </div>
-    <div class="card bg-base-100 shadow p-4">
-      <h2 class="font-semibold text-lg mb-2">Manage Clubs</h2>
-      <!-- Approved Clubs List -->
-  <h2 class="text-2xl font-semibold mt-6 mb-4">Approved Clubs</h2>
-  <ul class="list-disc list-inside">
-    {% for club in approved_clubs %}
-      <li>{{ club.name }} ({{ club.username }})</li>
-    {% empty %}
-      <li>No approved clubs found.</li>
-    {% endfor %}
-  </ul>
-      <p class="text-sm text-gray-500">Approve club registration requests.</p>
-    </div>
-  </div>
-  <!-- Button to Pending Clubs -->
-  <div class="mt-6">
-    <a href="{% url 'admin_panel:pending_list' %}" class="btn btn-primary">View Pending Club Registrations</a>
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <!-- Page Heading -->
+  <div class="mb-8">
+    <h1 class="text-4xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
+    <p class="text-gray-600 text-lg">Welcome, <span class="font-medium">{{ request.user.username }}</span>!</p>
   </div>
 
-  <!-- User List Table -->
-  <div class="overflow-x-auto">
-    <h2 class="text-2xl font-semibold mb-4">Registered Users</h2>
-    <table class="table w-full table-zebra">
-      <thead>
+  <!-- Dashboard Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+    <!-- Manage Clubs -->
+    <div class="bg-white p-6 rounded-xl shadow border">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Manage Clubs</h2>
+
+      <p class="text-gray-600 mb-3">View and manage approved club registrations.</p>
+      <ul class="list-disc list-inside text-gray-700 space-y-1">
+        {% for club in approved_clubs %}
+          <li>{{ club.name }} <span class="text-sm text-gray-500">({{ club.username }})</span></li>
+        {% empty %}
+          <li class="text-gray-400 italic">No approved clubs found.</li>
+        {% endfor %}
+      </ul>
+
+      <div class="mt-4">
+        <a href="{% url 'admin_panel:pending_list' %}" class="btn btn-primary btn-sm">View Pending Club Registrations</a>
+      </div>
+    </div>
+
+    <!-- Placeholder for Future Feature -->
+    <div class="bg-white p-6 rounded-xl shadow border">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Analytics (Coming Soon)</h2>
+      <p class="text-gray-500">This section will display charts and insights about user engagement, club activity, and more.</p>
+    </div>
+  </div>
+
+  <!-- User Table Section -->
+  <div class="bg-white p-6 rounded-xl shadow border overflow-x-auto">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Registered Users</h2>
+    <table class="table w-full table-zebra text-sm">
+      <thead class="bg-gray-100 text-gray-700">
         <tr>
-          <th>#</th>
-          <th>Username</th>
-          <th>Full Name</th>
-          <th>Email</th>
-          <th>Batch</th>
-          <th>Actions</th>
+          <th class="py-2 px-4">#</th>
+          <th class="py-2 px-4">Username</th>
+          <th class="py-2 px-4">Full Name</th>
+          <th class="py-2 px-4">Email</th>
+          <th class="py-2 px-4">Batch</th>
+          <th class="py-2 px-4">Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for user in register_users %}
-        <tr>
-          <td>{{ forloop.counter }}</td>
-          <td>{{ user.user_username }}</td>
-          <td>{{ user.full_name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.batch }}</td>
-          <td>
+        <tr class="hover">
+          <td class="py-2 px-4">{{ forloop.counter }}</td>
+          <td class="py-2 px-4">{{ user.user_username }}</td>
+          <td class="py-2 px-4">{{ user.full_name }}</td>
+          <td class="py-2 px-4">{{ user.email }}</td>
+          <td class="py-2 px-4">{{ user.batch }}</td>
+          <td class="py-2 px-4">
             <a href="{% url 'admin_panel:delete_user' user.id %}" class="btn btn-xs btn-error">Delete</a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="6" class="text-center text-gray-500">No users found.</td>
+          <td colspan="6" class="text-center text-gray-400 py-4">No users found.</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-</div>
+  </div>
 </div>
 {% endblock %}

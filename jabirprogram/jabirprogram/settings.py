@@ -76,6 +76,7 @@ TEMPLATES = [
                 'clubs.context_processors.total_member_count',
                 'events.context_processors.upcoming_events_processor',
                 'clubs.context_processors.featured_clubs',
+                 'clubs.context_processors.club_members_context',
 
 
             ],

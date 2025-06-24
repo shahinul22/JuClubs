@@ -53,7 +53,7 @@ from django.shortcuts import get_object_or_404, redirect
 from user.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-@login_required(login_url='admin_panel:admin_login_view')
+# @login_required(login_url='admin_panel:admin_login_view')
 @user_passes_test(lambda u: u.is_superuser, login_url='admin_panel:admin_login_view')
 def delete_user_view(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -73,6 +73,12 @@ def pending_club_list_view(request):
     pending_clubs = ClubRegistration.objects.filter(is_approved=False)
     return render(request, 'admin_panel/pending_clubs.html', {'pending_clubs': pending_clubs})
 
+from django.db import IntegrityError
+from django.contrib.auth.models import User
+from clubs.models import Club, Member, ClubRegistration
+from django.contrib import messages
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
 @login_required(login_url='admin_panel:admin_login_view')
 @user_passes_test(lambda u: u.is_superuser)
 def approve_club_view(request, reg_id):

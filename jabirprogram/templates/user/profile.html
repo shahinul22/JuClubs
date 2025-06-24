@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="max-w-xl mx-auto p-6 bg-white rounded-lg shadow">
+  <div class="flex justify-end max-w-4xl mx-auto mt-6">
+  <a href="{% url 'posts:create' %}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus mr-1"></i> Create Post
+  </a>
+</div>
+
   <h2 class="text-2xl font-bold mb-4">Your Profile</h2>
 
   <!-- Profile Photo -->
