@@ -549,7 +549,7 @@
                         {{ role|capfirst }}
                     </span>
                     {% endfor %}
-                    <{% if membership.is_active %}
+                    {% if membership.is_active %}
   <span class="bg-green-100 text-green-800 px-2.5 py-1 rounded-full text-xs font-medium">Active</span>
 {% else %}
   <span class="bg-gray-200 text-gray-600 px-2.5 py-1 rounded-full text-xs font-medium">Left</span>

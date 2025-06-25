@@ -263,7 +263,7 @@
 
               <!-- Profile Dropdown -->
               <div class="dropdown dropdown-end">
-                <div tabindex="0" class="btn btn-ghost btn-circle avatar tooltip tooltip-bottom profile-avatar"
+                <div tabindex="0" class="btn btn-ghost btn-circle avatar tooltip tooltip-left profile-avatar"
                      data-tip="{% if request.user.is_superuser %}Admin{% elif logged_user %}{{ logged_user.full_name|default:logged_user.user_username }}{% elif logged_club %}{{ logged_club.name }}{% endif %}">
                   <div class="w-10 h-10 rounded-full bg-gray-200 border-2 border-dashed overflow-hidden flex items-center justify-center text-xl font-bold text-gray-600">
                     {% if request.user.is_superuser %}
