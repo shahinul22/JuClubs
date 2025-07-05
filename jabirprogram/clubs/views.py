@@ -370,3 +370,133 @@ def edit_membership_view(request, membership_id):
         'membership': membership,
     }
     return render(request, 'clubs/edit_membership.html', context)
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Club, RequestedMember
+
+# clubs/views.py
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import Club
+from user.decorators import user_login_required  # your custom decorator
+
+from django.urls import reverse
+
+def join_club_view(request, club_id):
+    if request.method != "POST":
+        return redirect(f"{reverse('clubs:club_profile_members')}?club_id={club_id}")
+
+    club = get_object_or_404(Club, id=club_id)
+    from user.models import User
+
+    user_id = request.session.get('user_id')
+    if not user_id:
+        messages.error(request, "Please log in to join a club.")
+        return redirect('user:login')
+
+    user = get_object_or_404(User, id=user_id)
+
+    result = user.member_request(club)
+    if result is None:
+        messages.warning(request, "You have already requested to join this club.")
+    else:
+        messages.success(request, f"Your request to join '{club.name}' has been sent.")
+
+    return redirect(f"{reverse('clubs:club_profile_members')}?club_id={club_id}")
+
+from .models import RequestedMember, Club
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
+from django.contrib import messages
+
+# Example decorator (you can replace with your existing @club_login_required if needed)
+@club_login_required
+def club_member_requests_view(request):
+    club_id = request.session.get('club_id')
+    if not club_id:
+        messages.error(request, "You must be logged in as a club.")
+        return redirect('clubs:login')
+
+    club = get_object_or_404(Club, id=club_id)
+    requests = RequestedMember.objects.filter(club=club, is_approved=False, is_rejected=False)
+
+    return render(request, 'clubs/member_requests.html', {
+        'club': club,
+        'requests': requests
+    })
+
+
+from django.shortcuts import get_object_or_404, redirect
+from .models import RequestedMember, ClubMembership, Member
+from django.contrib import messages
+
+def approve_member_request(request, request_id):
+    req = get_object_or_404(RequestedMember, id=request_id, is_approved=False, is_rejected=False)
+    # Optionally: create a real Member and ClubMembership here
+    req.is_approved = True
+    req.save()
+    messages.success(request, f"{req.full_name}'s request approved.")
+    return redirect('clubs:club_member_requests')
+
+def decline_member_request(request, request_id):
+    req = get_object_or_404(RequestedMember, id=request_id, is_approved=False, is_rejected=False)
+    req.is_rejected = True
+    req.save()
+    messages.info(request, f"{req.full_name}'s request declined.")
+    return redirect('clubs:club_member_requests')
+
+
+from clubs.models import RequestedMember, Member, ClubMembership
+from django.contrib import messages
+from django.shortcuts import redirect, get_object_or_404
+from django.utils import timezone
+
+def approve_request_view(request, req_id):
+    request_obj = get_object_or_404(RequestedMember, id=req_id)
+
+    if request_obj.is_approved:
+        messages.warning(request, "Already approved.")
+        return redirect('clubs:club_member_requests')
+
+    # Use the correct attribute for student_id here
+    student_id_value = getattr(request_obj.user, 'user_username', None) or getattr(request_obj.user, 'student_id', None)
+    # Fallback to email if student_id not found (optional)
+    if not student_id_value:
+        student_id_value = request_obj.email
+
+    member, created = Member.objects.get_or_create(
+        student_id=student_id_value,
+        email=request_obj.email,
+        defaults={
+            'name': request_obj.full_name,
+            'phone': request_obj.phone,
+            'session': request_obj.session,
+            'department': request_obj.department,
+            'photo': request_obj.photo,
+        }
+    )
+
+    ClubMembership.objects.create(
+        member=member,
+        club=request_obj.club,
+        roles='general_member',
+        is_active=True,
+        joined_date=timezone.now().date()
+    )
+
+    request_obj.is_approved = True
+    request_obj.save()
+
+    messages.success(request, f"{member.name} has been approved and added as a general member.")
+    return redirect('clubs:club_member_requests')
+
+
+def decline_request_view(request, req_id):
+    request_obj = get_object_or_404(RequestedMember, id=req_id)
+    request_obj.is_rejected = True
+    request_obj.save()
+    messages.info(request, "Request declined.")
+    return redirect('clubs:club_member_requests')

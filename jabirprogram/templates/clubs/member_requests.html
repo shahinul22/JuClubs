@@ -1,35 +1,23 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h2 class="text-2xl font-bold mb-4">Pending Member Requests</h2>
+<h2 class="text-2xl font-bold mb-4">Member Join Requests for {{ club.name }}</h2>
 
 {% if requests %}
-  <div class="space-y-4">
-    {% for req in requests %}
-      <div class="p-4 border rounded bg-base-100 flex justify-between items-center">
-        <div>
-          <h3 class="font-semibold">{{ req.user.full_name }}</h3>
-          <p class="text-sm text-gray-500">{{ req.user.department }} | Batch {{ req.user.batch }}</p>
-        </div>
-       <form method="post" action="{% url 'clubs:approve_member_request' req.id %}" class="flex gap-2">
-  {% csrf_token %}
-  <select name="role" class="select select-bordered select-sm">
-    <option value="general_member">General Member</option>
-    <option value="executive_member">Executive Member</option>
-    <option value="volunteer_coordinator">Volunteer Coordinator</option>
-    <option value="event_manager">Event Manager</option>
-    <!-- add more roles as needed -->
-  </select>
-  <button type="submit" class="bg-green-100 text-green-800 hover:bg-green-200 px-3 py-1 rounded-lg text-sm font-medium">
-    Approve
-  </button>
-</form>
-
+  {% for req in requests %}
+  <div class="flex items-center justify-between bg-base-200 p-4 rounded mb-2">
+      <div>
+          <p class="font-bold">{{ req.full_name }}</p>
+          <p class="text-sm">{{ req.email }}</p>
       </div>
-    {% endfor %}
+      <div class="flex gap-2">
+          <a href="{% url 'clubs:approve_request' req.id %}" class="btn btn-success">Approve</a>
+          <a href="{% url 'clubs:decline_request' req.id %}" class="btn btn-error">Decline</a>
+      </div>
   </div>
+  {% endfor %}
 {% else %}
-  <p>No pending requests.</p>
+  <p class="text-gray-600">No requests yet.</p>
 {% endif %}
 
 {% endblock %}

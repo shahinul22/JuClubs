@@ -46,6 +46,7 @@
                 </div>
 
                 <!-- Action Buttons -->
+                {% if is_admin or logged_club %}
                 <div class="absolute bottom-6 right-6 z-20">
                     <a
                         href="{% url 'clubs:edit_club' %}"
@@ -56,6 +57,7 @@
                         <span class="nav-link font-semibold">Edit Profile</span>
                     </a>
                 </div>
+                {% endif %}
             </div>
         </div>
 
@@ -476,9 +478,10 @@
 
         {% if is_admin or logged_club %}
         <div class="flex flex-col md:flex-row gap-4">
-            <a href="#" class="btn bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-lg">
-                <i class="fa-solid fa-user-check mr-2"></i> View Member Requests
-            </a>
+            <a href="{% url 'clubs:club_member_requests' %}" class="btn bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-lg">
+    <i class="fa-solid fa-user-check mr-2"></i> View Member Requests
+</a>
+
             <a href="{% url 'clubs:add_member' club.id %}" class="btn bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-lg">
                 <i class="fa-solid fa-user-plus mr-2"></i> Add Member
             </a>
@@ -488,12 +491,26 @@
 
         </div>
         {% else %}
-<form method="post" action="">
-    {% csrf_token %}
-    <button type="submit" class="btn bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-lg">
-        <i class="fa-solid fa-user-plus mr-2"></i> Join as Member
-    </button>
-</form>
+        {%if logged_user %}
+{% if club.id in requested_club_ids %}
+    <span class="inline-block bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg font-semibold">
+        Request Pending
+    </span>
+{% else %}
+    <form method="post" action="{% url 'clubs:join_club' club.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-lg flex items-center justify-center" aria-label="Join {{ club.name }} as a member">
+            <i class="fa-solid fa-user-plus mr-2" aria-hidden="true"></i> 
+            Join as Member
+        </button>
+    </form>
+{% endif %}
+{% endif %}
+
+
+
+
+
 
         {% endif %}
     </div>

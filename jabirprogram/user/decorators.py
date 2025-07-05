@@ -5,12 +5,25 @@ from django.shortcuts import redirect
 from functools import wraps
 from django.contrib import messages
 
+from django.shortcuts import redirect
+from functools import wraps
+from django.contrib import messages
+from user.models import User
+
 def user_login_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
+        user_id = request.session.get('user_id')
+        if not user_id:
             messages.error(request, "Please login to access this page")
-            return redirect('user:login')  # Change to your login URL name
+            return redirect('user:login')
+
+        try:
+            request.user = User.objects.get(id=user_id)  # ✅ Set custom user manually
+        except User.DoesNotExist:
+            messages.error(request, "User not found")
+            return redirect('user:login')
+
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 

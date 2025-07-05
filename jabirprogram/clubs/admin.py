@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Club, Member, ClubMembership, ClubAdvisor, ClubSocialLink, ClubRegistration
+from .models import Club, Member, ClubMembership, ClubAdvisor, ClubSocialLink, ClubRegistration, RequestedMember
 
 # Inline for ClubMembership inside Club admin
 class ClubMembershipInline(admin.TabularInline):
@@ -55,12 +55,14 @@ class ClubRegistrationAdmin(admin.ModelAdmin):
 
 
 from django.contrib import admin
-from .models import ClubMemberRequest
 
-@admin.register(ClubMemberRequest)
-class ClubMemberRequestAdmin(admin.ModelAdmin):
-    list_display = ('user', 'club', 'requested_at', 'is_approved')
-    list_filter = ('is_approved', 'requested_at', 'club')
-    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'club__name')
-    date_hierarchy = 'requested_at'
-    ordering = ('-requested_at',)
+
+from django.contrib import admin
+from .models import RequestedMember
+
+@admin.register(RequestedMember)
+class RequestedMemberAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'club', 'user', 'requested_at', 'is_approved', 'is_rejected')
+    list_filter = ('is_approved', 'is_rejected', 'requested_at')
+    search_fields = ('full_name', 'user__user_username', 'club__name', 'email')
+    readonly_fields = ('requested_at',)

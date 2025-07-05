@@ -295,15 +295,28 @@ class ClubRegistration(models.Model):
 
 
 
-from django.db import models
-from user.models import User
-from clubs.models import Club
+# models.py (in clubs app or a separate app for requests)
 
-class ClubMemberRequest(models.Model):
-    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='member_requests')
+from django.db import models
+from django.utils import timezone
+from user.models import User
+# from clubs.models import Club
+
+class RequestedMember(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    requested_at = models.DateTimeField(auto_now_add=True)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=150)
+    email = models.EmailField()
+    student_id = models.CharField(max_length=50)
+    phone = models.CharField(max_length=20)
+    session = models.CharField(max_length=20)
+    department = models.CharField(max_length=100)
+    photo = models.ImageField(upload_to='requested_photos/', blank=True, null=True)
+    batch = models.CharField(max_length=10)
+
+    requested_at = models.DateTimeField(default=timezone.now)
     is_approved = models.BooleanField(default=False)
+    is_rejected = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.full_name} -> {self.club.name}"
+        return f"{self.full_name} requested to join {self.club.name}"

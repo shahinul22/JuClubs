@@ -60,5 +60,16 @@ urlpatterns = [
     path('membership/<int:membership_id>/leave/', views.leave_membership_view, name='leave_membership'),
 
 
+    
+    # path('<int:club_id>/join/', views.join_club_view, name='join_club'),
+    path('<int:club_id>/join/', views.join_club_view, name='join_club'),
+    path('profile/member-requests/', views.club_member_requests_view, name='club_member_requests'),
+    path('approve-request/<int:request_id>/', views.approve_member_request, name='approve_request'),
+    path('decline-request/<int:request_id>/', views.decline_member_request, name='decline_request'),
+    path('request/<int:req_id>/approve/', views.approve_request_view, name='approve_request'),
+    path('request/<int:req_id>/decline/', views.decline_request_view, name='decline_request'),
+
+
+
 
 ]
