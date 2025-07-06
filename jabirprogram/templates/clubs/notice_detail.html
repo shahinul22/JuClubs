@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+    <div class="p-6">
+      <!-- Notice Header -->
+      <div class="flex flex-wrap justify-between items-start mb-4">
+        <div>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                       {% if notice.notice_type == 'urgent' %}bg-red-100 text-red-800
+                       {% elif notice.notice_type == 'event' %}bg-green-100 text-green-800
+                       {% elif notice.notice_type == 'meeting' %}bg-indigo-100 text-indigo-800
+                       {% else %}bg-gray-100 text-gray-800{% endif %}">
+            {{ notice.get_notice_type_display }}
+          </span>
+          {% if notice.is_pinned %}
+          <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M5.5 17.5a.5.5 0 01-1 0V2.914l-.646-.647a.5.5 0 01.708-.708l1.5 1.5a.5.5 0 010 .708l-1.5 1.5a.5.5 0 01-.708-.708L5.5 2.914V17.5z"/>
+            </svg>
+            Pinned
+          </span>
+          {% endif %}
+        </div>
+        <div class="text-right mt-2 sm:mt-0">
+          <span class="text-sm text-gray-500">{{ notice.publish_date|date:"M j, Y" }}</span>
+          {% if notice.expiration_date %}
+          <div class="text-xs text-gray-500">Expires: {{ notice.expiration_date|date:"M j, Y" }}</div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Notice Title -->
+      <h1 class="text-2xl font-bold text-gray-900 mb-4">{{ notice.title }}</h1>
+      
+      <!-- Notice Content -->
+      <div class="prose max-w-none mb-6">
+        {{ notice.content|linebreaks }}
+      </div>
+      
+      <!-- File Attachment -->
+      {% if notice.file %}
+      <div class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div class="flex items-center">
+          <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-900 truncate">
+              {{ notice.file.name }}
+            </p>
+            <p class="text-sm text-gray-500">
+              {{ notice.file.size|filesizeformat }} • {{ notice.file_extension }}
+            </p>
+          </div>
+          <div class="ml-auto">
+            <a href="{{ notice.file.url }}" 
+               class="ml-4 px-3 py-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+              Download
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Admin Actions -->
+      {% if request.user|has_permission:club %}
+      <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-3">
+        <a href="{% url 'clubs:club_notice_update' club_username=club.username notice_slug=notice.slug %}" 
+           class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          Edit Notice
+        </a>
+        <a href="{% url 'clubs:club_notice_delete' club_username=club.username notice_slug=notice.slug %}" 
+           class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+          Delete Notice
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- Back to List -->
+  <div class="mt-6">
+    <a href="{% url 'clubs:club_notice_list' club_username=club.username %}" 
+       class="inline-flex items-center text-blue-600 hover:text-blue-800">
+      <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+      </svg>
+      Back to all notices
+    </a>
+  </div>
+</div>
+{% endblock %}

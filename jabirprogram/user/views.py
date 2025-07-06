@@ -180,18 +180,26 @@ from posts.models import Post
 from user.models import User
 
 def profile_view(request, user_id=None):
+    from posts.models import Post
+    from .models import User
+
+    session_user_id = request.session.get('user_id')
+
     if user_id:
         profile_user = get_object_or_404(User, id=user_id)
     else:
-        if not request.user.is_authenticated:
+        if not session_user_id:
             return redirect('user:login')
-        profile_user = request.user
+        profile_user = get_object_or_404(User, id=session_user_id)
 
     post_count = Post.objects.filter(user=profile_user).count()
+
+    is_owner = (session_user_id == profile_user.id)
 
     return render(request, 'user/profile.html', {
         'profile_user': profile_user,
         'post_count': post_count,
+        'is_owner': is_owner,
     })
 
 # Edit Profile view

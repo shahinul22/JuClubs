@@ -29,14 +29,17 @@
         </div>
 
         <div class="flex space-x-3">
-          {% if request.user.id == profile_user.id %}
-            <a href="{% url 'posts:create' %}" class="btn btn-primary flex items-center">
-              <i class="fas fa-plus mr-2"></i> Create Post
-            </a>
-            <a href="{% url 'user:edit_profile' %}" class="btn btn-outline flex items-center">
-              <i class="fas fa-edit mr-2"></i> Edit Profile
-            </a>
-          {% endif %}
+          {% if is_owner %}
+  <a href="{% url 'posts:create' %}" class="btn btn-primary flex items-center">
+    <i class="fas fa-plus mr-2"></i> Create Post
+  </a>
+  <a href="{% url 'user:edit_profile' %}" class="btn btn-outline flex items-center">
+    <i class="fas fa-edit mr-2"></i> Edit Profile
+  </a>
+{% endif %}
+
+
+
         </div>
       </div>
 

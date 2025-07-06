@@ -66,3 +66,16 @@ class RequestedMemberAdmin(admin.ModelAdmin):
     list_filter = ('is_approved', 'is_rejected', 'requested_at')
     search_fields = ('full_name', 'user__user_username', 'club__name', 'email')
     readonly_fields = ('requested_at',)
+
+
+# clubs/admin.py
+from django.contrib import admin
+from .models import ClubNotice
+
+@admin.register(ClubNotice)
+class ClubNoticeAdmin(admin.ModelAdmin):
+    list_display = ('title', 'club', 'notice_type', 'is_pinned', 'publish_date')
+    list_filter = ('notice_type', 'is_pinned', 'club')
+    search_fields = ('title', 'content')
+    prepopulated_fields = {'slug': ('title',)}
+    date_hierarchy = 'publish_date'

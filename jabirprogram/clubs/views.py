@@ -123,6 +123,17 @@ def club_profile_tab_view(request, club_id=None, tab='about'):
     # Events
     upcoming_events = Event.objects.filter(club=club, date_time__gte=timezone.now()).order_by('date_time')[:2]
     events = Event.objects.filter(club=club).order_by('date_time') if tab == 'events' else []
+    # Fetch existing notices
+    # notices = ClubNotice.objects.filter(club=club).order_by('-created_at')
+
+
+    club = get_object_or_404(Club, id=club_id)
+     # Get latest 5 notices
+    notices = ClubNotice.objects.filter(club=club).order_by('-is_pinned', '-publish_date')[:5]
+    
+    # Let's say you want to pass a specific notice too (for example, the most recent one)
+    latest_notice = notices.first() if notices else None
+
 
     # Executive Members
     all_memberships = ClubMembership.objects.filter(club=club, is_active=True).select_related('member')
@@ -135,6 +146,8 @@ def club_profile_tab_view(request, club_id=None, tab='about'):
 
     context = {
         'club': club,
+        'notices': notices,
+        'latest_notice': latest_notice,  # Pass an existing notice
         'club_registration': club_reg,
         'active_tab': tab,
         'status': 'approved',
@@ -217,7 +230,8 @@ def add_member_view(request, club_id):
             membership.member = member
             membership.club = club
             membership.save()
-            return redirect('clubs:club_profile_members')
+            messages.success(request, 'Member added  successfully!')
+            return redirect('clubs:club_profile', club_id=club.id)
     else:
         member_form = MemberForm()
         membership_form = ClubMembershipForm()
@@ -276,18 +290,21 @@ from .forms import ClubAdvisorForm
 
 
 @club_login_required
-def add_advisor_view(request):
+def add_advisor_view(request, club_id):
+    club = get_object_or_404(Club, id=club_id)
+
     if request.method == 'POST':
         form = ClubAdvisorForm(request.POST, request.FILES)
         if form.is_valid():
             advisor = form.save(commit=False)
-            advisor.club = request.club
+            advisor.club = club
             advisor.save()
             messages.success(request, "Advisor added successfully.")
-            return redirect('clubs:club_profile_about')
+            return redirect('clubs:club_profile', club_id=club.id)
     else:
         form = ClubAdvisorForm()
-    return render(request, 'clubs/add_advisor.html', {'form': form})
+
+    return render(request, 'clubs/add_advisor.html', {'form': form, 'club': club})
 
 @club_login_required
 def edit_advisor_view(request, advisor_id):
@@ -467,6 +484,11 @@ from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
 from django.utils import timezone
 
+from django.utils import timezone
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from clubs.models import RequestedMember, Member, ClubMembership
+
 def approve_request_view(request, req_id):
     request_obj = get_object_or_404(RequestedMember, id=req_id)
 
@@ -474,11 +496,8 @@ def approve_request_view(request, req_id):
         messages.warning(request, "Already approved.")
         return redirect('clubs:club_member_requests')
 
-    # Use the correct attribute for student_id here
-    student_id_value = getattr(request_obj.user, 'user_username', None) or getattr(request_obj.user, 'student_id', None)
-    # Fallback to email if student_id not found (optional)
-    if not student_id_value:
-        student_id_value = request_obj.email
+    # ✅ Use RequestedMember.student_id only
+    student_id_value = request_obj.student_id
 
     member, created = Member.objects.get_or_create(
         student_id=student_id_value,
@@ -506,10 +525,235 @@ def approve_request_view(request, req_id):
     messages.success(request, f"{member.name} has been approved and added as a general member.")
     return redirect('clubs:club_member_requests')
 
-
 def decline_request_view(request, req_id):
     request_obj = get_object_or_404(RequestedMember, id=req_id)
     request_obj.is_rejected = True
     request_obj.save()
     messages.info(request, "Request declined.")
     return redirect('clubs:club_member_requests')
+
+
+
+
+# clubs/views.py
+from .models import Club, ClubGallery
+from .forms import ClubGalleryForm
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+
+def club_gallery_upload_view(request, club_id):
+    club = get_object_or_404(Club, id=club_id)
+
+    if request.method == 'POST':
+        form = ClubGalleryForm(request.POST, request.FILES)
+        if form.is_valid():
+            gallery_item = form.save(commit=False)
+            gallery_item.club = club
+            gallery_item.save()
+            messages.success(request, "Photo added to gallery.")
+            return redirect(f"{reverse('clubs:club_profile')}?club_id={club_id}&tab=gallery")
+    else:
+        form = ClubGalleryForm()
+
+    return render(request, 'clubs/add_photo.html', {
+        'form': form,
+        'club': club
+    })
+from django.views.decorators.http import require_POST
+from .models import ClubGallery
+@require_POST
+def delete_gallery_photo_view(request, photo_id):
+    photo = get_object_or_404(ClubGallery, id=photo_id)
+    club_id = photo.club.id
+
+    # (Optional) add club admin check here
+    photo.delete()
+    messages.success(request, "Photo deleted.")
+    return redirect(f"{reverse('clubs:club_profile')}?club_id={club_id}&tab=gallery")
+
+
+
+
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.utils import timezone
+from .models import Club, ClubNotice
+from .forms import ClubNoticeForm
+
+class ClubNoticeListView(ListView):
+    model = ClubNotice
+    template_name = 'clubs/notice_list.html'
+    context_object_name = 'notices'
+    paginate_by = 10
+
+    def get_queryset(self):
+        # Get club based on username in URL
+        club = Club.objects.get(username=self.kwargs['club_username'])
+        now = timezone.now()
+        
+        # Get active notices (published and not expired)
+        queryset = ClubNotice.objects.filter(
+            club=club,
+            publish_date__lte=now
+        ).exclude(
+            expiration_date__lt=now
+        ).order_by('-is_pinned', '-publish_date')
+        
+        # Filter by notice type if provided
+        notice_type = self.request.GET.get('type')
+        if notice_type:
+            queryset = queryset.filter(notice_type=notice_type)
+        
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['club'] = Club.objects.get(username=self.kwargs['club_username'])
+        context['notice_types'] = dict(ClubNotice.NOTICE_TYPES)
+        return context
+
+class ClubNoticeDetailView(DetailView):
+    model = ClubNotice
+    template_name = 'clubs/notice_detail.html'
+    context_object_name = 'notice'
+    
+    def get_object(self, queryset=None):
+        return ClubNotice.objects.get(
+            club__username=self.kwargs['club_username'],
+            slug=self.kwargs['notice_slug']
+        )
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['club'] = self.object.club
+        return context
+
+class ClubNoticeCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = ClubNotice
+    form_class = ClubNoticeForm
+    template_name = 'clubs/notice_form.html'
+    
+    def test_func(self):
+        # Check if user has permission to create notices for this club
+        club = Club.objects.get(username=self.kwargs['club_username'])
+        # Implement your own permission logic here
+        # Example: return self.request.user in club.admins.all()
+        return True  # Replace with actual permission check
+    
+    def form_valid(self, form):
+        form.instance.club = Club.objects.get(username=self.kwargs['club_username'])
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['club'] = Club.objects.get(username=self.kwargs['club_username'])
+        context['action'] = 'Create'
+        return context
+
+class ClubNoticeUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = ClubNotice
+    form_class = ClubNoticeForm
+    template_name = 'clubs/notice_form.html'
+    
+    def test_func(self):
+        notice = self.get_object()
+        # Implement your own permission logic here
+        # Example: return self.request.user in notice.club.admins.all()
+        return True  # Replace with actual permission check
+    
+    def get_object(self, queryset=None):
+        return ClubNotice.objects.get(
+            club__username=self.kwargs['club_username'],
+            slug=self.kwargs['notice_slug']
+        )
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['club'] = self.object.club
+        context['action'] = 'Update'
+        return context
+
+class ClubNoticeDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = ClubNotice
+    template_name = 'clubs/notice_confirm_delete.html'
+    success_url = reverse_lazy('club_notice_list')  # Need to adjust based on club
+    
+    def test_func(self):
+        notice = self.get_object()
+        # Implement your own permission logic here
+        # Example: return self.request.user in notice.club.admins.all()
+        return True  # Replace with actual permission check
+    
+    def get_object(self, queryset=None):
+        return ClubNotice.objects.get(
+            club__username=self.kwargs['club_username'],
+            slug=self.kwargs['notice_slug']
+        )
+    
+    def get_success_url(self):
+        return reverse_lazy('club_notice_list', kwargs={
+            'club_username': self.object.club.username
+        })
+    
+
+
+# clubs/views.py
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import Club, ClubNotice
+from django.utils import timezone
+
+# def club_profile_tab_view(request, club_id):
+#     club = get_object_or_404(Club, id=club_id)
+#     # Get latest 5 notices for the club
+#     notices = ClubNotice.objects.filter(club=club).order_by('-is_pinned', '-publish_date')[:5]
+    
+#     return render(request, 'clubs/profile.html', {
+#         'club': club,
+#         'notices': notices,
+#     })
+
+@csrf_exempt
+def create_club_notice(request):
+    if request.method == 'POST':
+        try:
+            # Get the club ID from form data
+            club_id = request.POST.get('club')
+            if not club_id:
+                return JsonResponse({'error': 'Invalid or missing club'}, status=400)
+            
+            # Get the club instance
+            try:
+                club = Club.objects.get(id=club_id)
+            except Club.DoesNotExist:
+                return JsonResponse({'error': 'Club not found'}, status=404)
+            
+            # Create the new notice
+            notice = ClubNotice.objects.create(
+                club=club,
+                title=request.POST.get('title'),
+                content=request.POST.get('content'),
+                notice_type=request.POST.get('notice_type', 'general'),
+                is_pinned=bool(request.POST.get('is_pinned')),
+                is_public=bool(request.POST.get('is_public', True)),
+                publish_date=request.POST.get('publish_date'),
+                expiration_date=request.POST.get('expiration_date') or None
+            )
+            
+            # Handle file upload
+            if 'file' in request.FILES:
+                notice.file = request.FILES['file']
+                notice.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Notice created successfully',
+                'notice_id': notice.id
+            })
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)

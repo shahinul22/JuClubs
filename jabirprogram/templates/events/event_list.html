@@ -3,7 +3,24 @@
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-  <!-- Header with search and filters -->
+  <!-- 🔥 Fixed Breaking Events Scrolling Banner -->
+  <div class="bg-red-100 border-b border-red-300 py-2 px-4 relative overflow-hidden">
+    <!-- Label -->
+    <div class="absolute left-0 top-1/2 -translate-y-1/2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-r z-10">
+      🔥 BREAKING
+    </div>
+
+    <!-- Scrolling Text Wrapper -->
+    <div class="marquee-container ml-28">
+      <div class="marquee-content">
+        {% for event in upcoming_events|slice:":5" %}
+          📢 {{ event.title }} — {{ event.date_time|date:"M j, g:i A" }} at {{ event.location }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Rest of your template remains unchanged -->
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
     <div>
       <h1 class="text-4xl font-bold text-gray-900 mb-2">Club Events</h1>
@@ -213,7 +230,6 @@
     {% endif %}
   </section>
 </div>
-{% endblock %}
 
 <style>
   body {
@@ -234,4 +250,66 @@
     background-color: #f9fafb;
     border: 1px dashed #d1d5db;
   }
+
+  /* Fixed Marquee Styling */
+  .marquee-container {
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+  }
+  
+  .marquee-content {
+    display: inline-block;
+    white-space: nowrap;
+    animation: marquee-scroll 25s linear infinite;
+    padding-left: 100%; /* Start off-screen */
+  }
+  
+  .marquee-content:hover {
+    animation-play-state: paused;
+  }
+  
+  @keyframes marquee-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+  
+  .marquee-container:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50px;
+    height: 100%;
+    background: linear-gradient(to right, rgba(254, 226, 226, 1) 0%, rgba(254, 226, 226, 0) 100%);
+    z-index: 2;
+  }
+  
+  .marquee-container:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 50px;
+    height: 100%;
+    background: linear-gradient(to left, rgba(254, 226, 226, 1) 0%, rgba(254, 226, 226, 0) 100%);
+    z-index: 2;
+  }
 </style>
+
+<script>
+  // Add pause on hover functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const marqueeContent = document.querySelector('.marquee-content');
+    if (marqueeContent) {
+      marqueeContent.addEventListener('mouseenter', function() {
+        this.style.animationPlayState = 'paused';
+      });
+      
+      marqueeContent.addEventListener('mouseleave', function() {
+        this.style.animationPlayState = 'running';
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -292,7 +292,14 @@ class ClubRegistration(models.Model):
         self.reviewed_at = timezone.now()
         self.save()
 
+# clubs/models.py
+class ClubGallery(models.Model):
+    club = models.ForeignKey(Club, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='club_gallery/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.club.name} Gallery Image"
 
 
 # models.py (in clubs app or a separate app for requests)
@@ -320,3 +327,140 @@ class RequestedMember(models.Model):
 
     def __str__(self):
         return f"{self.full_name} requested to join {self.club.name}"
+
+
+
+
+
+from django.db import models
+from django.utils.text import slugify
+from django.urls import reverse
+from django.utils import timezone
+from django.core.validators import FileExtensionValidator
+
+class ClubNotice(models.Model):
+    NOTICE_TYPES = (
+        ('general', 'General Notice'),
+        ('event', 'Event Announcement'),
+        ('meeting', 'Meeting Notice'),
+        ('urgent', 'Urgent Announcement'),
+        ('achievement', 'Club Achievement'),
+        ('other', 'Other'),
+    )
+    
+    club = models.ForeignKey(
+        Club, 
+        on_delete=models.CASCADE,
+        related_name='notices',
+        verbose_name="Club"
+    )
+    title = models.CharField(
+        max_length=255,
+        verbose_name="Notice Title"
+    )
+    slug = models.SlugField(
+        max_length=300,
+        unique=True,
+        blank=True,
+        verbose_name="URL Slug",
+        help_text="Auto-generated URL-friendly identifier"
+    )
+    content = models.TextField(
+        blank=True,
+        verbose_name="Notice Content"
+    )
+    file = models.FileField(
+        upload_to='club_notices/%Y/%m/%d/',
+        blank=True, 
+        null=True,
+        validators=[FileExtensionValidator(
+            allowed_extensions=['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'txt']
+        )],
+        verbose_name="Attachment",
+        help_text="Optional file attachment (PDF, Word, Excel, Image)"
+    )
+    notice_type = models.CharField(
+        max_length=20,
+        choices=NOTICE_TYPES,
+        default='general',
+        verbose_name="Notice Type"
+    )
+    is_pinned = models.BooleanField(
+        default=False,
+        verbose_name="Pin to Top",
+        help_text="Keep this notice at the top of lists"
+    )
+    is_public = models.BooleanField(
+        default=True,
+        verbose_name="Public Notice",
+        help_text="Visible to non-members"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Created At"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Updated At"
+    )
+    publish_date = models.DateTimeField(
+        default=timezone.now,
+        verbose_name="Publish Date",
+        help_text="When the notice should become visible"
+    )
+    expiration_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name="Expiration Date",
+        help_text="When the notice should be automatically archived"
+    )
+
+    class Meta:
+        ordering = ['-is_pinned', '-publish_date']
+        verbose_name = 'Club Notice'
+        verbose_name_plural = 'Club Notices'
+        indexes = [
+            models.Index(fields=['publish_date']),
+            models.Index(fields=['is_pinned']),
+            models.Index(fields=['notice_type']),
+        ]
+        get_latest_by = 'publish_date'
+
+    def __str__(self):
+        return f"{self.title} - {self.club.name}"
+
+    def save(self, *args, **kwargs):
+        # Generate slug if not provided
+        if not self.slug:
+            base_slug = slugify(f"{self.club.username}-{self.title}")
+            unique_slug = base_slug
+            counter = 1
+            while ClubNotice.objects.filter(slug=unique_slug).exists():
+                unique_slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = unique_slug
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('club:notice_detail', kwargs={
+            'club_username': self.club.username,
+            'notice_slug': self.slug
+        })
+
+    def is_active(self):
+        """Check if notice is currently visible"""
+        now = timezone.now()
+        if self.expiration_date:
+            return self.publish_date <= now <= self.expiration_date
+        return self.publish_date <= now
+
+    def file_extension(self):
+        """Get file extension for display purposes"""
+        if self.file:
+            return self.file.name.split('.')[-1].upper()
+        return None
+
+    @property
+    def is_recent(self):
+        """Check if notice was published recently"""
+        return (timezone.now() - self.publish_date).days < 3

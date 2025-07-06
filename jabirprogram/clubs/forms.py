@@ -143,3 +143,39 @@ class MemberForm(forms.ModelForm):
     class Meta:
         model = Member
         fields = '__all__'  # edit all member fields
+
+
+
+# clubs/forms.py
+from django import forms
+from .models import ClubGallery
+
+class ClubGalleryForm(forms.ModelForm):
+    class Meta:
+        model = ClubGallery
+        fields = ['image']
+
+
+
+
+from django import forms
+from .models import ClubNotice
+from django.utils import timezone
+from django.core.validators import FileExtensionValidator
+
+class ClubNoticeForm(forms.ModelForm):
+    class Meta:
+        model = ClubNotice
+        fields = [
+            'title', 'content', 'file', 'notice_type', 
+            'is_pinned', 'is_public', 'publish_date', 'expiration_date'
+        ]
+        widgets = {
+            'publish_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'expiration_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['publish_date'].initial = timezone.now()
+        self.fields['file'].help_text = "Allowed file types: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, TXT"

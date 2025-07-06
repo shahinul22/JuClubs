@@ -146,10 +146,12 @@
                     ><i class="fa-regular fa-images"></i> Gallery</a
                 >
                 <a
-                    href="{% url 'clubs:club_profile_resources' %}?club_id={{ club.id }}"
-                    class="nav-link tab {% if active_tab == 'resources' %}tab-active{% endif %} text-sm sm:text-base font-medium whitespace-nowrap"
-                    ><i class="fa-regular fa-file"></i> Resources</a
-                >
+    href="{% url 'clubs:club_profile_notice' %}?club_id={{ club.id }}"
+    class="nav-link tab {% if active_tab == 'notice' %}tab-active{% endif %} text-sm sm:text-base font-medium whitespace-nowrap"
+>
+    <i class="fa-regular fa-file"></i> Notice
+</a>
+
             </div>
         </div>
 
@@ -486,7 +488,7 @@
       <i class="fa-solid fa-user-plus mr-2"></i> Add Member
     </a>
 
-    <a href="{% url 'clubs:add_advisor' %}" class="btn bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg">
+    <a href="{% url 'clubs:add_advisor' club.id %}" class="btn bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg">
       <i class="fa-solid fa-user-tie mr-2"></i> Add Advisor
     </a>
   </div>
@@ -804,38 +806,281 @@
             {% endif %}
 
             <!-- Gallery Tab -->
-            {% if active_tab == 'gallery' %}
-            <h2 class="text-3xl font-bold mb-6">Gallery</h2>
-            <a href="#" class="btn bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-lg">
-             Add Club photo
-            </a>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <!-- Gallery items would go here -->
-                <div class="aspect-square bg-gray-200 rounded-lg"></div>
-                <div class="aspect-square bg-gray-200 rounded-lg"></div>
-                <div class="aspect-square bg-gray-200 rounded-lg"></div>
-            </div>
-            {% endif %}
+{% if active_tab == 'gallery' %}
+<h2 class="text-3xl font-bold mb-6">Gallery</h2>
 
-            <!-- Resources Tab -->
-            {% if active_tab == 'resources' %}
-            <h2 class="text-3xl font-bold mb-6">Resources</h2>
-            <div class="space-y-4">
-                <!-- Resource items would go here -->
-                <div class="card bg-base-100 shadow">
-                    <div class="card-body">
-                        <h3 class="card-title">Club Constitution</h3>
-                        <p>PDF Document</p>
-                    </div>
-                </div>
-                <div class="card bg-base-100 shadow">
-                    <div class="card-body">
-                        <h3 class="card-title">Meeting Minutes</h3>
-                        <p>April 2023</p>
-                    </div>
-                </div>
+<!-- Gallery Display -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6" id="galleryGrid">
+  {% for photo in club.clubgallery_set.all %}
+  <div class="relative aspect-square bg-gray-200 rounded-lg overflow-hidden group">
+    <img src="{{ photo.image.url }}" alt="Club Photo" class="w-full h-full object-cover">
+    <form action="{% url 'clubs:delete_gallery_photo' photo.id %}" method="POST"
+          class="absolute top-2 right-2 hidden group-hover:block z-10">
+      {% csrf_token %}
+      {% if is_admin or club.id == logged_club.id %}
+      <button type="submit"
+              class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 shadow">
+        Delete
+      </button>
+      {% endif %}
+    </form>
+  </div>
+  {% empty %}
+  <p class="text-gray-500">No photos uploaded yet.</p>
+  {% endfor %}
+</div>
+
+<!-- Button to open modal -->
+{% if is_admin or club.id == logged_club.id %}
+<a href="{% url 'clubs:club_gallery_upload' club.id %}?next_tab=gallery"
+   class="btn bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-lg">
+   Add Club Photo
+</a>
+
+{% endif %}
+
+<!-- Modal for Upload -->
+<dialog id="galleryModal" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Upload Club Photo(s)</h3>
+
+    {% csrf_token %}
+    <input type="file" id="galleryImagesInput" multiple required
+           class="file-input file-input-bordered w-full mb-4">
+
+    <div class="modal-action">
+      <button id="uploadBtn" class="btn bg-blue-600 text-white">Upload</button>
+      <button type="button" onclick="document.getElementById('galleryModal').close()" class="btn">Cancel</button>
+    </div>
+
+    <div id="uploadStatus" class="mt-2 text-sm"></div>
+  </div>
+</dialog>
+{% endif %} 
+
+            <!-- notice Tab -->
+            {% if active_tab == 'notice' %}
+<h2 class="text-3xl font-bold mb-6">Notices</h2>
+<div class="mt-12">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-3xl font-bold">Notices</h2>
+    {% if is_admin or club.id == logged_club.id %}
+
+
+    <button 
+      id="createNoticeBtn"
+      class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+      data-club-id="{{ club.id }}"  
+    >
+      <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+      </svg>
+      Create Notice
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Notices List -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    {% if notices %}
+    <ul class="divide-y divide-gray-200">
+      {% for notice in notices %}
+      <li class="p-4 hover:bg-gray-50 transition-colors duration-150">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <div class="w-12 h-12 rounded-md bg-gray-100 flex items-center justify-center">
+              <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
             </div>
-            {% endif %}
+          </div>
+          
+          <div class="ml-4 flex-1 min-w-0">
+            <div class="flex justify-between items-start">
+              <p class="text-lg font-medium text-gray-900">
+                <a href="#" class="hover:text-blue-600">{{ notice.title }}</a>
+              </p>
+              <div class="ml-2 flex-shrink-0 flex">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                   Published: {{ notice.publish_date|date:"M d, Y H:i" }}
+                </span>
+                {% comment %} <p><small>Published: {{ notice.publish_date|date:"M d, Y H:i" }}</small></p> {% endcomment %}
+              </div>
+            </div>
+            <div class="mt-1 text-gray-600 text-sm">
+              {{ notice.content|truncatewords:20 }}
+            </div>
+            
+            <div class="mt-2 flex flex-wrap gap-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                         {% if notice.notice_type == 'urgent' %}bg-red-100 text-red-800
+                         {% elif notice.notice_type == 'event' %}bg-green-100 text-green-800
+                         {% elif notice.notice_type == 'meeting' %}bg-indigo-100 text-indigo-800
+                         {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ notice.get_notice_type_display }}
+              </span>
+              
+              {% if notice.is_pinned %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                Pinned
+              </span>
+              {% endif %}
+              
+              {% if notice.file %}
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Attachment
+              </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    
+    <div class="px-4 py-3 bg-gray-50 text-right border-t border-gray-200">
+      <a href="#" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+        View all notices
+        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+    </div>
+    {% else %}
+    <div class="p-8 text-center">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <h3 class="mt-4 text-lg font-medium text-gray-900">No notices yet</h3>
+      {% if is_admin or club.id == logged_club.id %}
+
+
+      <p class="mt-1 text-gray-500">Get started by creating your first club notice.</p>
+      <div class="mt-6">
+        <button 
+          id="createNoticeBtnEmpty"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          data-club-id="{{ club.id }}"
+        >
+          Create Notice
+        </button>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  
+{% if latest_notice %}
+  <hr class="my-6">
+  <h3 class="text-lg font-bold">Most Recent Notice: {{ latest_notice.title }}</h3>
+  <p>{{ latest_notice.content }}</p>
+{% endif %}
+
+</div>
+
+<!-- Create Notice Modal -->
+<div id="createNoticeModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+  <div class="bg-white rounded-xl shadow-lg w-full max-w-2xl">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-900">Create New Notice</h3>
+        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-500">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <form id="noticeForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" id="clubId" name="club" value="{{ club.id }}">
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Notice Title</label>
+            <input type="text" name="title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter notice title" required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Notice Type</label>
+            <select name="notice_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+              <option value="general">General Notice</option>
+              <option value="event">Event Announcement</option>
+              <option value="meeting">Meeting Notice</option>
+              <option value="urgent">Urgent Announcement</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+            <textarea name="content" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter notice content" required></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Attachment (Optional)</label>
+            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+              <div class="space-y-1 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div class="flex text-sm text-gray-600">
+                  <label class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500">
+                    <span>Upload a file</span>
+                    <input type="file" name="file" class="sr-only">
+                  </label>
+                  <p class="pl-1">or drag and drop</p>
+                </div>
+                <p class="text-xs text-gray-500">PDF, DOC, DOCX, XLS, XLSX, JPG, PNG up to 10MB</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Publish Date</label>
+              <input type="datetime-local" name="publish_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Expiration Date (Optional)</label>
+              <input type="datetime-local" name="expiration_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+          
+          <div class="flex items-center">
+            <input id="pin-notice" type="checkbox" name="is_pinned" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+            <label for="pin-notice" class="ml-2 block text-sm text-gray-900">Pin this notice to the top</label>
+          </div>
+          
+          <div class="flex items-center">
+            <input id="public-notice" type="checkbox" name="is_public" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+            <label for="public-notice" class="ml-2 block text-sm text-gray-900">Make this notice public</label>
+          </div>
+        </div>
+        
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" id="cancelModalBtn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Publish Notice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- Show form only to club admins -->
+{% if is_admin or club.id == logged_club.id %}
+
+{% endif %}
+
+{% endif %}
+
+
+
         </div>
     </div>
 </main>
@@ -1001,6 +1246,113 @@
             });
         }
     });
+    
+  // Set current datetime as default for publish date
+  function setDefaultDateTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+  
+  // Modal functionality
+  const createNoticeBtn = document.getElementById('createNoticeBtn');
+  const createNoticeBtnEmpty = document.getElementById('createNoticeBtnEmpty');
+  const createNoticeModal = document.getElementById('createNoticeModal');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const cancelModalBtn = document.getElementById('cancelModalBtn');
+  const noticeForm = document.getElementById('noticeForm');
+  
+  // Set default publish date
+  document.addEventListener('DOMContentLoaded', () => {
+    const publishDateInput = document.querySelector('input[name="publish_date"]');
+    if (publishDateInput) {
+      publishDateInput.value = setDefaultDateTime();
+    }
+  });
+  
+  if (createNoticeBtn) {
+    createNoticeBtn.addEventListener('click', () => {
+      createNoticeModal.classList.remove('hidden');
+    });
+  }
+  
+  if (createNoticeBtnEmpty) {
+    createNoticeBtnEmpty.addEventListener('click', () => {
+      createNoticeModal.classList.remove('hidden');
+    });
+  }
+  
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+      createNoticeModal.classList.add('hidden');
+    });
+  }
+  
+  if (cancelModalBtn) {
+    cancelModalBtn.addEventListener('click', () => {
+      createNoticeModal.classList.add('hidden');
+    });
+  }
+  
+  // Close modal when clicking outside
+  window.addEventListener('click', (event) => {
+    if (event.target === createNoticeModal) {
+      createNoticeModal.classList.add('hidden');
+    }
+  });
+  
+   if (noticeForm) {
+    noticeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitButton = noticeForm.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Publishing...';
+      
+      try {
+        const formData = new FormData(noticeForm);
+        
+        // Get CSRF token from cookie
+        function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+              }
+            }
+          }
+          return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        // FIXED: Use the correct URL name
+        const response = await fetch('{% url "clubs:create_club_notice" %}', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrftoken
+          },
+          body: formData
+        });
+        
+        // ... rest of the code ...
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        submitButton.disabled = false;
+        submitButton.textContent = 'Publish Notice';
+      }
+    });
+  }
 </script>
 
 {% endblock %}

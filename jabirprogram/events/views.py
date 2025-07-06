@@ -27,8 +27,14 @@ def club_events_list(request, club_id):
     })
 
 
-@club_login_required
+
 def create_event_view(request, club_id):
+    session_club_id = request.session.get('club_id')
+    
+    if session_club_id != club_id:
+        messages.error(request, "Please login to create an event.")
+        return redirect('clubs:club_login')  # or wherever your login view is
+
     club = get_object_or_404(Club, id=club_id)
 
     if request.method == 'POST':
@@ -37,8 +43,9 @@ def create_event_view(request, club_id):
             event = form.save(commit=False)
             event.club = club
             event.save()
+
             messages.success(request, 'Event created successfully!')
-            return redirect('events:club_events_list', club_id=club.id)
+            return redirect('clubs:club_profile', club_id=club.id)
     else:
         form = EventForm()
 
@@ -46,6 +53,7 @@ def create_event_view(request, club_id):
         'form': form,
         'club': club,
     })
+
 
 def event_registration_view(request, event_id):
     event = get_object_or_404(Event, id=event_id)
