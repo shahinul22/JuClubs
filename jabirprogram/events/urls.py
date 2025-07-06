@@ -8,4 +8,5 @@ urlpatterns = [
     path('event/<int:event_id>/register/', views.event_registration_view, name='event_registration'),
     path('event/<int:event_id>/', views.event_detail_view, name='event_detail'),
     path('club/<int:club_id>/events/create/', views.create_event_view, name='create_event'),  # If create event is here
+    path('list/', views.event_list_view, name='event_list'),
 ]

@@ -68,6 +68,7 @@ urlpatterns = [
     path('decline-request/<int:request_id>/', views.decline_member_request, name='decline_request'),
     path('request/<int:req_id>/approve/', views.approve_request_view, name='approve_request'),
     path('request/<int:req_id>/decline/', views.decline_request_view, name='decline_request'),
+    path("profile/<int:club_id>/", club_profile_tab_view, {'tab': 'about'}, name="club_profile"),
 
 
 

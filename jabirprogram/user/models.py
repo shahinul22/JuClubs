@@ -21,6 +21,7 @@ class User(models.Model):
     code_expires_at = models.DateTimeField(null=True, blank=True)
 
     photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    
 
     def set_password(self, raw_password):
         self.user_password = make_password(raw_password)

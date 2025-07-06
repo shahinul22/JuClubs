@@ -86,3 +86,19 @@ def event_detail_view(request, event_id):
     return render(request, 'events/event_detail.html', {
         'event': event,
     })
+
+
+from django.shortcuts import render
+from django.utils import timezone
+from .models import Event
+
+def event_list_view(request):
+    now = timezone.now()
+    upcoming_events = Event.objects.filter(date_time__gte=now).order_by('date_time')
+    past_events = Event.objects.filter(date_time__lt=now).order_by('-date_time')  # recent past first
+
+    context = {
+        'upcoming_events': upcoming_events,
+        'past_events': past_events,
+    }
+    return render(request, 'events/event_list.html', context)

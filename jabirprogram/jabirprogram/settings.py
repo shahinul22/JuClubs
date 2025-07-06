@@ -78,7 +78,7 @@ TEMPLATES = [
                 'clubs.context_processors.featured_clubs',
                 'clubs.context_processors.club_members_context',
                 'user.context_processors.join_request_status',
-
+                'posts.context_processors.user_post_count',
             ],
         },
     },

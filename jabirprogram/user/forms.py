@@ -5,7 +5,7 @@ class UserForm(forms.ModelForm):
     raw_password = forms.CharField(
         label='Password',
         widget=forms.PasswordInput,
-        required=False  # you can make it True if it's during creation only
+        required=False  # set to True during creation if needed
     )
 
     class Meta:
@@ -15,11 +15,17 @@ class UserForm(forms.ModelForm):
             'raw_password',
             'full_name',
             'email',
+            'student_id',
             'batch',
             'session',
+            'phone',
             'department',
+            'photo',
             'is_approved',
             'is_active',
+            'is_verified',
+            'verification_code',
+            'code_expires_at',
         ]
 
     def save(self, commit=True):

@@ -1,46 +1,82 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="max-w-xl mx-auto p-6 bg-white rounded-lg shadow">
-  <h2 class="text-2xl font-bold mb-4">Edit Profile</h2>
-  <form method="POST" enctype="multipart/form-data">
+<div class="max-w-xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow mt-6">
+  <h2 class="text-xl sm:text-2xl font-bold mb-6 text-center">Edit Profile</h2>
+
+  <form method="POST" enctype="multipart/form-data" class="space-y-4">
     {% csrf_token %}
 
-    <!-- Photo Preview and Upload -->
+    <!-- Profile Photo -->
+    <div>
+      <label class="block mb-2 font-medium">Profile Photo</label>
+      <div class="w-24 h-24 rounded-full overflow-hidden border border-gray-300 flex items-center justify-center mb-2">
+        {% if user.photo %}
+          <img src="{{ user.photo.url }}" alt="Profile Photo" class="object-cover w-full h-full rounded-full">
+        {% else %}
+          <span class="text-gray-400 text-sm">No photo</span>
+        {% endif %}
+      </div>
+      <input type="file" name="photo" accept="image/*" class="file-input file-input-bordered w-full">
+    </div>
+
+    <!-- Full Name -->
+    <div>
+      <label class="block font-medium">Full Name</label>
+      <input type="text" name="full_name" value="{{ user.full_name }}" class="input input-bordered w-full" required>
+    </div>
+
+    <!-- Username -->
+    <div>
+      <label class="block font-medium">Username</label>
+      <input type="text" name="user_username" value="{{ user.user_username }}" class="input input-bordered w-full" required>
+    </div>
+
+    <!-- Email -->
+    <div>
+      <label class="block font-medium">Email</label>
+      <input type="email" name="email" value="{{ user.email }}" class="input input-bordered w-full" required>
+    </div>
+
+    <!-- Student ID -->
     <div class="mb-4">
-  <label class="block mb-2">Profile Photo</label>
-  <div class="mb-2 w-24 h-24 rounded-full overflow-hidden border border-gray-300 flex items-center justify-center">
-    {% if user.photo %}
-      <img src="{{ user.photo.url }}" alt="Profile Photo" class="object-cover w-full h-full rounded-full" />
-    {% else %}
-      <span class="text-gray-400">No photo uploaded</span>
-    {% endif %}
-  </div>
-  <input type="file" name="photo" accept="image/*" class="input input-bordered w-full" />
-  <p class="text-sm text-gray-500 mt-1">Choose a new photo to add or replace your current one.</p>
+  <label class="block font-medium">Student ID</label>
+  <input type="text" name="student_id" value="{{ user.student_id }}" class="input input-bordered w-full" required>
 </div>
 
 
-    <!-- Other fields -->
-    <div class="mb-4">
-      <label class="block">Full Name</label>
-      <input type="text" name="full_name" value="{{ user.full_name }}" class="input input-bordered w-full" required>
-    </div>
-    <div class="mb-4">
-      <label class="block">Batch</label>
+    <!-- Batch -->
+    <div>
+      <label class="block font-medium">Batch</label>
       <input type="text" name="batch" value="{{ user.batch }}" class="input input-bordered w-full" required>
     </div>
-    <div class="mb-4">
-      <label class="block">Session</label>
+
+    <!-- Session -->
+    <div>
+      <label class="block font-medium">Session</label>
       <input type="text" name="session" value="{{ user.session }}" class="input input-bordered w-full" required>
     </div>
-    <div class="mb-4">
-      <label class="block">Department</label>
+
+    <!-- Department -->
+    <div>
+      <label class="block font-medium">Department</label>
       <input type="text" name="department" value="{{ user.department }}" class="input input-bordered w-full" required>
     </div>
 
-    <div class="flex justify-between items-center">
-      <button type="submit" class="btn btn-success">Save</button>
-      <a href="{% url 'user:profile' %}" class="btn btn-ghost">Cancel</a>
+    <!-- Phone -->
+    <div>
+      <label class="block font-medium">Phone Number</label>
+      <input type="text" name="phone" value="{{ user.phone }}" class="input input-bordered w-full">
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row gap-3 justify-between pt-4">
+      <button type="submit" class="btn btn-success w-full sm:w-auto">
+        <i class="fas fa-save mr-1"></i> Save Changes
+      </button>
+      <a href="{% url 'user:profile' %}" class="btn btn-ghost w-full sm:w-auto">
+        Cancel
+      </a>
     </div>
   </form>
 </div>

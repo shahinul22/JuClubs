@@ -51,7 +51,7 @@ def club_login_view(request):
         if club.check_password(password):
             request.session['club_id'] = club.id
             request.session['club_username'] = club.username
-            return redirect('clubs:club_profile')  # redirect to profile
+            return redirect('clubs:club_profile', club_id=club.id)  # pass club_id here
         else:
             messages.error(request, 'Invalid username or password.')
 
@@ -79,8 +79,12 @@ from django.utils import timezone
 from clubs.models import Club, ClubRegistration, ClubMembership
 from events.models import Event
 
-
-def club_profile_tab_view(request, tab):
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.utils import timezone
+from .models import Club, ClubRegistration, ClubMembership
+from events.models import Event
+def club_profile_tab_view(request, club_id=None, tab='about'):
     username = request.session.get('club_username')
     club = None
     club_reg = None
@@ -88,6 +92,8 @@ def club_profile_tab_view(request, tab):
     if username:
         try:
             club_reg = ClubRegistration.objects.get(club_username=username)
+
+            # If not approved
             if not club_reg.is_approved or not club_reg.approved_club:
                 messages.warning(request, "Your club is not approved yet.")
                 return render(request, 'clubs/profile.html', {
@@ -96,19 +102,23 @@ def club_profile_tab_view(request, tab):
                     'active_tab': tab,
                     'events': [],
                     'upcoming_events': [],
-                    'memberships': [],  # still send empty list
+                    'memberships': [],
                 })
-            club = club_reg.approved_club
+
+            # ✅ Removed the redirection block
+            # This allows club users to view other clubs' profiles
+
         except ClubRegistration.DoesNotExist:
             messages.error(request, "Club registration not found.")
             return redirect('clubs:register')
-    else:
-        club_id = request.GET.get('club_id')
+
+    if not club_id:
+        club_id = request.GET.get('club_id')  # fallback from ?club_id=
         if not club_id:
             messages.error(request, "Invalid or missing club.")
             return redirect('clubs:login')
 
-        club = get_object_or_404(Club, id=club_id, is_active=True)
+    club = get_object_or_404(Club, id=club_id, is_active=True)
 
     # Events
     upcoming_events = Event.objects.filter(club=club, date_time__gte=timezone.now()).order_by('date_time')[:2]
@@ -120,6 +130,8 @@ def club_profile_tab_view(request, tab):
     memberships = [
         m for m in all_memberships if any(role in m.get_roles_list() for role in executive_roles)
     ]
+    logged_club = club_reg.approved_club if club_reg else None
+
 
     context = {
         'club': club,
@@ -128,7 +140,8 @@ def club_profile_tab_view(request, tab):
         'status': 'approved',
         'upcoming_events': upcoming_events,
         'events': events,
-        'memberships': memberships,  # 👈 added here
+        'memberships': memberships,
+        'logged_club': logged_club,  # 👈 added
     }
 
     return render(request, 'clubs/profile.html', context)

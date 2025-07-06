@@ -46,7 +46,7 @@
                 </div>
 
                 <!-- Action Buttons -->
-                {% if is_admin or logged_club %}
+                {% if is_admin or club.id == logged_club.id %}
                 <div class="absolute bottom-6 right-6 z-20">
                     <a
                         href="{% url 'clubs:edit_club' %}"
@@ -476,21 +476,23 @@
             <p class="text-gray-600 mt-2">Meet our {{ club.members.count }} active members</p>
         </div>
 
-        {% if is_admin or logged_club %}
-        <div class="flex flex-col md:flex-row gap-4">
-            <a href="{% url 'clubs:club_member_requests' %}" class="btn bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-lg">
-    <i class="fa-solid fa-user-check mr-2"></i> View Member Requests
-</a>
+        {% if logged_club and club.id == logged_club.id %}
+  <div class="flex flex-col md:flex-row gap-4">
+    <a href="{% url 'clubs:club_member_requests' %}" class="btn bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-6 rounded-lg">
+      <i class="fa-solid fa-user-check mr-2"></i> View Member Requests
+    </a>
 
-            <a href="{% url 'clubs:add_member' club.id %}" class="btn bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-lg">
-                <i class="fa-solid fa-user-plus mr-2"></i> Add Member
-            </a>
-            <a href="{% url 'clubs:add_advisor' %}" class="btn bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg">
-    <i class="fa-solid fa-user-tie mr-2"></i> Add Advisor
-</a>
+    <a href="{% url 'clubs:add_member' club.id %}" class="btn bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-lg">
+      <i class="fa-solid fa-user-plus mr-2"></i> Add Member
+    </a>
 
-        </div>
+    <a href="{% url 'clubs:add_advisor' %}" class="btn bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg">
+      <i class="fa-solid fa-user-tie mr-2"></i> Add Advisor
+    </a>
+  </div>
         {% else %}
+
+
         {%if logged_user %}
 {% if club.id in requested_club_ids %}
     <span class="inline-block bg-yellow-200 text-yellow-800 px-4 py-2 rounded-lg font-semibold">
@@ -768,16 +770,17 @@
             <h2 class="text-3xl font-bold mb-6">Events</h2>
             <div class="max-w-5xl mx-auto p-4">
                 <!-- Create Event Button -->
-                {% if is_admin or logged_club %}
-                <div class="flex justify-end mb-4">
-                    <a
-                        href="{% url 'events:create_event' club.id %}"
-                        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                    >
-                        + Create Event
-                    </a>
-                </div>
-                {% endif %}
+                {% if is_admin or club.id == logged_club.id %}
+    <div class="flex justify-end mb-4">
+        <a
+            href="{% url 'events:create_event' club.id %}"
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
+            + Create Event
+        </a>
+    </div>
+{% endif %}
+
 
                 <h1 class="text-3xl font-bold mb-6">Upcoming Events</h1>
 
