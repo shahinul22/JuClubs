@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = 'posts'
 
@@ -11,4 +13,8 @@ urlpatterns = [
     path('<int:post_id>/like-toggle/', views.toggle_like, name='like_toggle'),
     path('<int:post_id>/comment-add/', views.add_comment, name='comment_add'),
     path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
-]
+] 
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

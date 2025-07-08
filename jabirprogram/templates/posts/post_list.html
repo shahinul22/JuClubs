@@ -5,9 +5,10 @@
 {% block content %}
 <div class="max-w-4xl rounded-2xl mx-auto px-4 py-8 min-h-screen p-5 bg-gradient-to-br from-[#f0f4ff] to-[#e6f0ff] text-gray-900">
   <div>
-      <h1 class="text-3xl font-bold text-gray-800">Campus Feed</h1>
-      <p class="text-gray-600 mt-1">Latest updates from students and clubs</p>
-    </div>
+    <h1 class="text-3xl font-bold text-gray-800">Campus Feed</h1>
+    <p class="text-gray-600 mt-1">Latest updates from students and clubs</p>
+  </div>
+  
   <!-- Create Post Button -->
   {% if user.is_authenticated or logged_club or request.user.is_superuser %}
   <div class="flex justify-end mb-6">
@@ -44,688 +45,509 @@
     </div>
   </div>
 
-  <!-- Posts List -->
-  <div class="space-y-6 ">
+  <div id="posts-container">
     {% for post in page_obj %}
-    <div class="card bg-base-100 bg-white rounded-2xl shadow-lg overflow-hidden mb-6 transition duration-300 ease-in-out relative hover:shadow-xl hover:scale-[1.01] shadow-md hover:shadow-lg transition-shadow duration-200" data-post-id="{{ post.id }}">
-      <div class="card-body p-4 sm:p-6">
+      <div class="post-card bg-white rounded-xl shadow-md overflow-hidden mb-6 transition-all duration-300 hover:shadow-lg">
         <!-- Post Header -->
-        <div class="flex items-start gap-3 mb-4">
-          {% if post.is_superadmin_post %}
-            <div class="avatar placeholder">
-              <div class="w-12 rounded-full bg-yellow-100 text-yellow-600">
-                <span class="text-xl">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                </span>
-              </div>
-            </div>
-            <div>
-              <h2 class="card-title text-lg">Superadmin</h2>
-              <div class="flex items-center gap-2 text-sm text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{{ post.created_at|date:"F j, Y · g:i A" }}</span>
-                {% if post.location %}
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>{{ post.location }}</span>
-                {% endif %}
-              </div>
-            </div>
-          {% elif post.user %}
-            <div class="avatar">
-              <a href="{% url 'user:profile_with_id' post.user.id %}" class="w-12 h-12 rounded-full border-2 border-base-200 hover:border-primary transition-colors duration-200">
+        <div class="p-4 border-b border-gray-100 flex items-start">
+          <div class="mr-3">
+            {% if post.user %}
+              <!-- User Avatar -->
+              <a href="{% url 'user:profile_with_id' post.user.id %}">
                 {% if post.user.photo %}
-                  <img src="{{ post.user.photo.url }}" alt="User avatar" class="rounded-full" />
+                  <img src="{{ post.user.photo.url }}" alt="User avatar" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 hover:border-primary transition-colors">
                 {% else %}
-                  <div class="avatar placeholder">
-                    <div class="w-12 rounded-full bg-neutral text-neutral-content">
-                      <span class="text-xl">👤</span>
-                    </div>
+                  <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span class="text-gray-600 text-xl">👤</span>
                   </div>
                 {% endif %}
               </a>
-            </div>
-            <div>
-              <a href="{% url 'user:profile_with_id' post.user.id %}" class="card-title hover:underline text-lg">{{ post.user.user_username }}</a>
-              <div class="flex items-center gap-2 text-sm text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{{ post.created_at|date:"F j, Y · g:i A" }}</span>
-                {% if post.location %}
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>{{ post.location }}</span>
-                {% endif %}
-              </div>
-            </div>
-          {% elif post.club %}
-            <div class="avatar">
-              <a href="{% url 'clubs:club_profile' club_id=post.club.id %}" class="w-12 h-12 rounded-full border-2 border-base-200 hover:border-primary transition-colors duration-200">
+            {% elif post.club %}
+              <!-- Club Avatar -->
+              <a href="{% url 'clubs:club_profile' club_id=post.club.id %}">
                 {% if post.club.logo %}
-                  <img src="{{ post.club.logo.url }}" alt="Club logo" class="rounded-full" />
+                  <img src="{{ post.club.logo.url }}" alt="Club logo" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 hover:border-primary transition-colors">
                 {% else %}
-                  <div class="avatar placeholder">
-                    <div class="w-12 rounded-full bg-neutral text-neutral-content">
-                      <span class="text-xl">🏛️</span>
-                    </div>
+                  <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span class="text-primary text-xl">🏢</span>
                   </div>
                 {% endif %}
               </a>
-            </div>
-            <div>
-              <a href="{% url 'clubs:club_profile' club_id=post.club.id %}" class="card-title hover:underline text-lg">{{ post.club.name }}</a>
-              <div class="flex items-center gap-2 text-sm text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            {% elif request.user.is_superuser %}
+              <!-- Admin Badge -->
+              <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                <span>{{ post.created_at|date:"F j, Y · g:i A" }}</span>
-                {% if post.location %}
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>{{ post.location }}</span>
-                {% endif %}
               </div>
-            </div>
-          {% endif %}
-        </div>
-
-        <!-- Post Content -->
-        {% if post.content %}
-          <div class="mb-4">
-            <div id="post-box-{{ post.id }}" class="relative overflow-hidden transition-all duration-300 max-h-24">
-              <div id="post-text-{{ post.id }}" class="prose break-words line-clamp-3">
-                {{ post.content|linebreaksbr }}
-              </div>
-
-              <!-- See more button (shown only if content overflows) -->
-              <div class="absolute bottom-0 right-0 bg-gradient-to-l from-base-100 via-base-100/90 to-transparent pl-8 pr-2 text-sm text-primary font-medium cursor-pointer hidden"
-                   onclick="expandPost({{ post.id }})"
-                   id="see-more-inline-{{ post.id }}">
-                ...See more
-              </div>
-            </div>
-
-            <!-- See less button -->
-            <div class="mt-2 hidden" id="see-less-btn-{{ post.id }}">
-              <button type="button" class="btn btn-sm btn-ghost text-primary" onclick="collapsePost({{ post.id }})">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                </svg>
-                Show less
-              </button>
-            </div>
+            {% endif %}
           </div>
-        {% endif %}
-
-        <!-- Images Grid -->
-        {% with post.images.all as images %}
-          {% if images %}
-            <div class="mb-4">
-              <div class="grid grid-cols-2 gap-2 rounded-box overflow-hidden post-images-grid max-h-96 transition-all duration-300 ease-in-out">
-                {% for img in images %}
-                  <div class="relative rounded-box overflow-hidden {% if forloop.counter > 4 %}hidden extra-img{% endif %}">
-                    <img src="{{ img.image.url }}" 
-                         alt="Post image" 
-                         class="w-full h-full object-cover aspect-square cursor-zoom-in" 
-                         onclick="openLightbox({{ post.id }}, {{ forloop.counter0 }})" />
-                    {% if forloop.counter == 4 and images|length > 4 %}
-                      <button type="button"
-                              class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-2xl font-bold see-all-overlay cursor-pointer transition-opacity hover:opacity-90"
-                              onclick="openLightbox({{ post.id }}, 3)">
-                        +{{ images|length|add:"-4" }} more
-                      </button>
-                    {% endif %}
-                  </div>
-                {% endfor %}
+          
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <div>
+                {% if post.user %}
+                  <a href="{% url 'user:profile_with_id' post.user.id %}" class="font-semibold text-gray-800 hover:text-primary transition-colors">
+                    {{ post.user.user_username }}
+                  </a>
+                {% elif post.club %}
+                  <a href="{% url 'clubs:club_profile' club_id=post.club.id %}" class="font-semibold text-gray-800 hover:text-primary transition-colors">
+                    {{ post.club.name }}
+                  </a>
+                {% elif request.user.is_superuser %}
+                  <span class="font-semibold text-purple-600">Admin</span>
+                {% endif %}
+                
+                {% if post.is_superadmin_post %}
+                  <span class="ml-2 badge badge-primary badge-sm">Official</span>
+                {% elif post.club %}
+                  <span class="ml-2 badge badge-secondary badge-sm">Club</span>
+                {% endif %}
               </div>
               
-              {% if images|length > 4 %}
-                <div class="mt-2 text-right">
-                  <button type="button" class="btn btn-sm btn-ghost text-primary see-all-btn" onclick="openLightbox({{ post.id }}, 0)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
-                    Show all {{ images|length }} images
-                  </button>
-                </div>
+              <div class="dropdown dropdown-end">
+                <button tabindex="0" class="btn btn-ghost btn-sm btn-circle">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                  </svg>
+                </button>
+                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                  <!-- Share -->
+                  <li>
+                    <a>
+                      <i class="fas fa-share-alt mr-2"></i>
+                      Share
+                    </a>
+                  </li>
+                  
+                  <!-- Save -->
+                  <li>
+                    <a>
+                      <i class="far fa-bookmark mr-2"></i>
+                      Save
+                    </a>
+                  </li>
+                  
+                  {% if post.user and current_user and post.user.id == current_user.id %}
+                    <!-- User owns the post -->
+                    <li>
+                      <a href="{% url 'posts:edit' post.id %}">
+                        <i class="far fa-edit mr-2"></i>
+                        Edit
+                      </a>
+                    </li>
+                    <li>
+                      <a class="text-error" href="{% url 'posts:delete' post.id %}">
+                        <i class="far fa-trash-alt mr-2"></i>
+                        Delete
+                      </a>
+                    </li>
+                  
+                  {% elif post.club and current_club and post.club.id == current_club.id %}
+                    <!-- Club owns the post -->
+                    <li>
+                      <a href="{% url 'posts:edit' post.id %}">
+                        <i class="far fa-edit mr-2"></i>
+                        Edit
+                      </a>
+                    </li>
+                    <li>
+                      <a class="text-error" href="{% url 'posts:delete' post.id %}">
+                        <i class="far fa-trash-alt mr-2"></i>
+                        Delete
+                      </a>
+                    </li>
+                  
+                  {% elif request.user.is_authenticated and request.user.is_superuser %}
+                    <!-- Superadmin access -->
+                    <li>
+                      <a class="text-error" href="{% url 'posts:delete' post.id %}">
+                        <i class="far fa-trash-alt mr-2"></i>
+                        Delete
+                      </a>
+                    </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </div>
+            
+            <div class="flex items-center text-xs text-gray-500 mt-1">
+              <i class="fa-regular fa-clock mr-2"></i>
+              <span> {{ post.created_at|timesince }} ago</span>
+              {% if post.location %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>{{ post.location }}</span>
               {% endif %}
             </div>
-          {% endif %}
-        {% endwith %}
-
-        <!-- Post Actions -->
-        <div class="card-actions justify-between items-center mt-4">
-          <!-- Like Button -->
-          <button class="btn btn-sm btn-ghost gap-1 like-btn" data-liked="{% if post.id in liked_post_ids %}true{% else %}false{% endif %}">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 {% if post.id in liked_post_ids %}text-red-500 fill-red-500{% else %}text-gray-500{% endif %}" viewBox="0 0 20 20" fill="none" stroke="currentColor">
-              <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
-            </svg>
-            <span class="like-count">{{ post.likes.count }}</span>
-            <span>Like{% if post.id in liked_post_ids %}d{% endif %}</span>
-          </button>
-          <!-- Share Button -->
-          <button class="btn btn-sm btn-ghost gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-            Share
-          </button>
-
-          <!-- Edit/Delete for post owner -->
-          {% if post.user == request.user %}
-          <div class="dropdown dropdown-end">
-            <button tabindex="0" class="btn btn-sm btn-ghost">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-              </svg>
-            </button>
-            <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-              <li><a href="{% url 'edit_post' post.id %}">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit Post
-              </a></li>
-              <li>
-                <form method="post" action="{% url 'delete_post' post.id %}">
-                  {% csrf_token %}
-                  <button type="submit" class="text-error">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Delete Post
-                  </button>
-                </form>
-              </li>
-            </ul>
           </div>
-          {% endif %}
+        </div>
+        
+        <!-- Post Content -->
+        <div class="p-4">
+          <div id="post-content-{{ post.id }}" class="relative">
+            <div id="post-text-{{ post.id }}" class="prose max-w-none line-clamp-3 transition-all duration-300">
+              {{ post.content|linebreaksbr }}
+            </div>
+            
+            <!-- See more/less button -->
+            {% if post.content|length > 150 %}
+              <button id="see-more-{{ post.id }}" onclick="toggleExpand({{ post.id }})" class="text-primary font-medium mt-1 flex items-center">
+                <span>See more</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              <button id="see-less-{{ post.id }}" onclick="toggleExpand({{ post.id }})" class="text-primary font-medium mt-1 hidden items-center">
+                <span>Show less</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+              </button>
+            {% endif %}
+          </div>
+          
+          <!-- Images Grid -->
+          {% with post.images.all as images %}
+            <div class="mt-4 grid gap-2 {% if images|length == 1 %}grid-cols-1{% elif images|length == 2 %}grid-cols-2{% else %}grid-cols-3{% endif %}">
+  {% for img in images %}
+    <div class="relative overflow-hidden rounded-lg bg-gray-100 aspect-square {% if forloop.counter > 3 %}hidden{% endif %}">
+      <img 
+        src="{{ img.image.url }}" 
+        alt="Post image" 
+        class="w-full h-full object-cover cursor-pointer transition-transform duration-300 hover:scale-105"
+        data-post-id="{{ post.id }}"
+        data-image-index="{{ forloop.counter0 }}"
+        onclick="openLightbox({{ post.id }}, {{ forloop.counter0 }})"
+      >
+      {% if forloop.counter == 3 and images|length > 3 %}
+        <div 
+          class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-lg font-bold cursor-pointer" 
+          data-post-id="{{ post.id }}"
+          data-image-index="{{ forloop.counter0 }}"
+          onclick="openLightbox({{ post.id }}, {{ forloop.counter0 }})"
+        >
+          +{{ images|length|add:"-3" }} more
+        </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+          {% endwith %}
+        </div>
+        
+        <!-- Post Stats -->
+        <div class="px-4 py-3 bg-gray-50 flex justify-between items-center">
+          <div class="flex items-center">
+            <button class="like-btn flex items-center mr-4 text-gray-600 hover:text-red-500 transition-colors" data-post-id="{{ post.id }}">
+              <svg id="heart-icon-{{ post.id }}" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <span id="like-count-{{ post.id }}">{{ post.likes.count }}</span>
+            </button>
+            
+            <button class="flex items-center text-gray-600 hover:text-blue-500 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span>{{ post.comments.count }}</span>
+            </button>
+          </div>
+          
+          <div>
+            <button class="flex items-center text-gray-600 hover:text-green-500 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Share
+            </button>
+          </div>
         </div>
       </div>
-    </div>
     {% empty %}
-    <div class="text-center py-12">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <h3 class="text-lg font-medium text-gray-600">No posts available yet</h3>
-      {% if user.is_authenticated %}
-      <p class="mt-2 text-gray-500">Be the first to share something!</p>
-      <a href="{% url 'posts:create' %}" class="btn btn-primary btn-sm mt-4">Create Post</a>
-      {% endif %}
-    </div>
+      <div class="bg-white rounded-xl shadow-sm p-8 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="text-xl font-medium text-gray-700 mt-4">No posts yet</h3>
+        <p class="text-gray-500 mt-2">Be the first to share something with the community!</p>
+        {% if user.is_authenticated or logged_club or request.user.is_superuser %}
+          <a href="{% url 'posts:create' %}" class="btn btn-primary mt-4">Create Your First Post</a>
+        {% endif %}
+      </div>
     {% endfor %}
   </div>
-
+  
   <!-- Pagination -->
-  {% if page_obj.paginator.num_pages > 1 %}
-  <div class="flex justify-center mt-8">
-    <div class="btn-group">
-      {% if page_obj.has_previous %}
-        <a href="?page=1" class="btn btn-sm">First</a>
-        <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm">«</a>
-      {% else %}
-        <button class="btn btn-sm btn-disabled">First</button>
-        <button class="btn btn-sm btn-disabled">«</button>
-      {% endif %}
-      
-      <button class="btn btn-sm btn-active">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</button>
-      
-      {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm">»</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-sm">Last</a>
-      {% else %}
-        <button class="btn btn-sm btn-disabled">»</button>
-        <button class="btn btn-sm btn-disabled">Last</button>
-      {% endif %}
+  {% if page_obj.has_other_pages %}
+    <div class="flex justify-center mt-8">
+      <div class="btn-group">
+        {% if page_obj.has_previous %}
+          <a href="?page=1{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="btn btn-outline">«</a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="btn btn-outline">‹</a>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <a class="btn btn-active">{{ num }}</a>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?page={{ num }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="btn btn-outline">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="btn btn-outline">›</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="btn btn-outline">»</a>
+        {% endif %}
+      </div>
     </div>
-  </div>
   {% endif %}
 </div>
 
-<!-- Lightbox Modal -->
-<div id="lightbox-modal" class="modal modal-bottom sm:modal-middle">
-  <div class="modal-box max-w-6xl p-0 bg-transparent shadow-none overflow-visible">
-    <div class="relative w-full h-full">
-      <!-- Close Button -->
-      <button class="btn btn-circle btn-sm absolute -right-4 -top-4 z-10 bg-base-100 border border-base-300 shadow-lg"
-              onclick="closeLightbox()">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<!-- Image Lightbox Modal -->
+<dialog id="image-lightbox" class="modal">
+  <div class="modal-box max-w-4xl p-0 bg-transparent shadow-none relative">
+    <!-- Close Button -->
+    <div class="absolute top-4 right-4 z-10">
+      <button onclick="closeLightbox()" class="btn btn-circle btn-sm btn-ghost bg-black/30 hover:bg-red/50 text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      
-      <!-- Navigation Arrows -->
-      <button class="btn btn-circle btn-sm absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-base-100/80 hover:bg-base-100 border border-base-300 shadow-lg"
-              onclick="navigateLightbox(-1)">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      <button class="btn btn-circle btn-sm absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-base-100/80 hover:bg-base-100 border border-base-300 shadow-lg"
-              onclick="navigateLightbox(1)">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-      
-      <!-- Image Container -->
-      <div id="lightbox-image-container" class="relative w-full h-full flex items-center justify-center">
-        <img id="lightbox-image" 
-             class="max-w-full max-h-[80vh] object-contain rounded-lg bg-base-100 shadow-xl cursor-zoom-out"
-             onclick="toggleZoom()"
-             draggable="false" />
-        
-        <!-- Loading Spinner -->
-        <div id="lightbox-loading" class="absolute inset-0 flex items-center justify-center">
-          <span class="loading loading-spinner loading-lg text-primary"></span>
-        </div>
-      </div>
-      
-      <!-- Image Counter -->
-      <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-base-100/80 px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-        <span id="lightbox-counter">1/1</span>
-      </div>
-      
-      <!-- Download Button -->
-      <a id="lightbox-download" 
-         class="btn btn-circle btn-sm absolute right-4 bottom-4 z-10 bg-base-100/80 hover:bg-base-100 border border-base-300 shadow-lg"
-         download>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-      </a>
+    </div>
+    
+    <!-- Navigation Arrows -->
+    <button id="prev-btn" class="absolute left-4 top-1/2 transform -translate-y-1/2 btn btn-circle btn-ghost bg-black/30 hover:bg-black/50 text-white z-10">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    
+    <button id="next-btn" class="absolute right-4 top-1/2 transform -translate-y-1/2 btn btn-circle btn-ghost bg-black/30 hover:bg-black/50 text-white z-10">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+    
+    <!-- Image Counter -->
+    <div id="image-counter" class="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-black/30 text-white text-sm font-medium">
+      1/5
+    </div>
+    
+    <!-- Image Container -->
+    <div class="flex items-center justify-center">
+      <img id="lightbox-image" src="" alt="Enlarged view" class="w-full max-h-[80vh] object-contain rounded-lg">
     </div>
   </div>
-</div>
+  
+  <form method="dialog" class="modal-backdrop">
+    <button onclick="closeLightbox()">close</button>
+  </form>
+</dialog>
 
-<!-- JavaScript -->
 <script>
-// Lightbox state
-let lightboxState = {
-  postId: null,
-  images: [],
-  currentIndex: 0,
-  isZoomed: false,
-  touchStartX: 0,
-  touchEndX: 0
-};
-
-// Initialize Hammer.js for swipe gestures
-function initSwipeGestures() {
-  const container = document.getElementById('lightbox-image-container');
-  if (!container) return;
-
-  const hammer = new Hammer(container);
-  hammer.on('swipeleft', () => navigateLightbox(1));
-  hammer.on('swiperight', () => navigateLightbox(-1));
-}
-
-// Open lightbox with specific image
-function openLightbox(postId, imageIndex) {
-  const post = document.querySelector(`.card[data-post-id="${postId}"]`);
-  if (!post) return;
-
-  const images = Array.from(post.querySelectorAll('.post-images-grid img')).map(img => img.src);
-  if (!images.length) return;
-
-  lightboxState = {
-    postId,
-    images,
-    currentIndex: Math.min(imageIndex, images.length - 1),
-    isZoomed: false
-  };
-
-  // Show loading spinner
-  document.getElementById('lightbox-loading').classList.remove('hidden');
+  // Lightbox state
+  let currentPostId = null;
+  let currentImageIndex = 0;
+  let imageList = [];
   
-  // Set image source
-  const lightboxImage = document.getElementById('lightbox-image');
-  lightboxImage.src = images[lightboxState.currentIndex];
-  lightboxImage.onload = () => {
-    document.getElementById('lightbox-loading').classList.add('hidden');
-  };
-
-  // Update counter
-  updateLightboxCounter();
-  
-  // Set download link
-  document.getElementById('lightbox-download').href = images[lightboxState.currentIndex];
-  
-  // Open modal
-  document.getElementById('lightbox-modal').showModal();
-  
-  // Initialize swipe gestures
-  initSwipeGestures();
-}
-
-// Close lightbox
-function closeLightbox() {
-  document.getElementById('lightbox-modal').close();
-  lightboxState.isZoomed = false;
-  document.getElementById('lightbox-image').classList.remove('scale-150', 'cursor-zoom-out');
-  document.getElementById('lightbox-image').classList.add('cursor-zoom-in');
-}
-
-// Navigate between images
-function navigateLightbox(direction) {
-  if (lightboxState.isZoomed) return;
-  
-  const newIndex = lightboxState.currentIndex + direction;
-  if (newIndex < 0 || newIndex >= lightboxState.images.length) return;
-
-  lightboxState.currentIndex = newIndex;
-  
-  // Show loading spinner
-  document.getElementById('lightbox-loading').classList.remove('hidden');
-  
-  // Set new image
-  const lightboxImage = document.getElementById('lightbox-image');
-  lightboxImage.src = lightboxState.images[lightboxState.currentIndex];
-  lightboxImage.onload = () => {
-    document.getElementById('lightbox-loading').classList.add('hidden');
-  };
-  
-  // Update counter
-  updateLightboxCounter();
-  
-  // Update download link
-  document.getElementById('lightbox-download').href = lightboxState.images[lightboxState.currentIndex];
-}
-
-// Update lightbox counter
-function updateLightboxCounter() {
-  document.getElementById('lightbox-counter').textContent = 
-    `${lightboxState.currentIndex + 1}/${lightboxState.images.length}`;
-}
-
-// Toggle zoom on image
-function toggleZoom() {
-  const lightboxImage = document.getElementById('lightbox-image');
-  lightboxState.isZoomed = !lightboxState.isZoomed;
-  
-  if (lightboxState.isZoomed) {
-    lightboxImage.classList.add('scale-150', 'cursor-zoom-out');
-    lightboxImage.classList.remove('cursor-zoom-in');
-  } else {
-    lightboxImage.classList.remove('scale-150', 'cursor-zoom-out');
-    lightboxImage.classList.add('cursor-zoom-in');
-  }
-}
-
-// Handle keyboard navigation
-document.addEventListener('keydown', (e) => {
-  const lightbox = document.getElementById('lightbox-modal');
-  if (lightbox.open) {
-    if (e.key === 'Escape') {
-      closeLightbox();
-    } else if (e.key === 'ArrowLeft') {
-      navigateLightbox(-1);
-    } else if (e.key === 'ArrowRight') {
-      navigateLightbox(1);
-    } else if (e.key === ' ' || e.key === 'z') {
-      toggleZoom();
-    }
-  }
-});
-
-// Touch events for mobile swipe
-document.getElementById('lightbox-image-container').addEventListener('touchstart', (e) => {
-  lightboxState.touchStartX = e.changedTouches[0].screenX;
-}, {passive: true});
-
-document.getElementById('lightbox-image-container').addEventListener('touchend', (e) => {
-  lightboxState.touchEndX = e.changedTouches[0].screenX;
-  handleSwipe();
-}, {passive: true});
-
-function handleSwipe() {
-  if (lightboxState.isZoomed) return;
-  
-  const diff = lightboxState.touchStartX - lightboxState.touchEndX;
-  const swipeThreshold = 50;
-  
-  if (diff > swipeThreshold) {
-    navigateLightbox(1); // Swipe left - next image
-  } else if (diff < -swipeThreshold) {
-    navigateLightbox(-1); // Swipe right - previous image
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  // IMAGE GALLERY HANDLING
-  document.querySelectorAll('.post-images-grid').forEach(grid => {
-    const container = grid.closest('.card');
-    const extraImgs = container.querySelectorAll('.extra-img');
-    const overlayBtn = container.querySelector('.see-all-overlay');
-    const seeAllBtn = container.querySelector('.see-all-btn');
-
-    if (!extraImgs.length) return;
-
-    const showAllImages = () => {
-      grid.style.maxHeight = 'none';
-      extraImgs.forEach(img => {
-        img.classList.remove('hidden');
-        img.style.opacity = '0';
-        setTimeout(() => {
-          img.style.transition = 'opacity 0.3s ease-in-out';
-          img.style.opacity = '1';
-        }, 10);
-      });
-      if (overlayBtn) overlayBtn.style.display = 'none';
-      if (seeAllBtn) {
-        seeAllBtn.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
-          </svg>
-          Show less`;
-        seeAllBtn.onclick = hideExtraImages;
-      }
-    };
-
-    const hideExtraImages = () => {
-      extraImgs.forEach(img => {
-        img.style.opacity = '0';
-        setTimeout(() => {
-          img.classList.add('hidden');
-          img.style.opacity = '';
-        }, 300);
-      });
-      grid.style.maxHeight = '24rem';
-      if (overlayBtn) overlayBtn.style.display = 'flex';
-      if (seeAllBtn) {
-        seeAllBtn.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-          </svg>
-          Show all ${extraImgs.length + 4} images`;
-        seeAllBtn.onclick = showAllImages;
-      }
-    };
-
-    if (overlayBtn) overlayBtn.addEventListener('click', showAllImages);
-    if (seeAllBtn) seeAllBtn.addEventListener('click', showAllImages);
-  });
-
-  // LIKE BUTTON HANDLING
-  document.querySelectorAll('.like-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const post = btn.closest('.card');
-      const postId = post.dataset.postId;
-      const isLiked = btn.dataset.liked === "true";
-      const heartIcon = btn.querySelector('svg');
-      const likeCount = btn.querySelector('.like-count');
-      const likeText = btn.querySelector('span:last-child');
-
-      try {
-        const response = await fetch(`/posts/${postId}/like-toggle/`, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json'
-          }
-        });
-
-        const data = await response.json();
-        if (data.success) {
-          btn.dataset.liked = (!isLiked).toString();
-          likeCount.textContent = data.likes_count;
-          likeText.textContent = !isLiked ? 'Liked' : 'Like';
-          
-          if (!isLiked) {
-            heartIcon.classList.add('text-red-500', 'fill-red-500');
-            heartIcon.classList.remove('text-gray-500');
-          } else {
-            heartIcon.classList.remove('text-red-500', 'fill-red-500');
-            heartIcon.classList.add('text-gray-500');
-          }
-        }
-      } catch (err) {
-        console.error('Like error:', err);
-      }
-    });
-  });
-
-  // CHECK CONTENT OVERFLOW FOR "SEE MORE"
-  const checkContentOverflow = () => {
-    document.querySelectorAll('[id^="post-box-"]').forEach(box => {
-      const postId = box.id.replace('post-box-', '');
-      const content = document.getElementById(`post-text-${postId}`);
-      const seeMore = document.getElementById(`see-more-inline-${postId}`);
-      
-      if (!content || !seeMore) return;
-
-      // Temporarily remove height constraints
-      const originalMaxHeight = box.style.maxHeight;
-      box.style.maxHeight = 'none';
-      content.classList.remove('line-clamp-3');
-      
-      // Get natural content height
-      const naturalHeight = content.scrollHeight;
-      
-      // Restore constraints
-      box.style.maxHeight = originalMaxHeight;
-      content.classList.add('line-clamp-3');
-      
-      // Get current visible height
-      const visibleHeight = box.clientHeight;
-      
-      // Show "see more" if content overflows
-      seeMore.classList.toggle('hidden', naturalHeight <= visibleHeight + 5);
-    });
-  };
-
-  // Initial check and on resize
-  setTimeout(checkContentOverflow, 300);
-  window.addEventListener('resize', checkContentOverflow);
-});
-
-// EXPAND POST CONTENT
-function expandPost(postId) {
-  const box = document.getElementById(`post-box-${postId}`);
-  const text = document.getElementById(`post-text-${postId}`);
-  const seeMore = document.getElementById(`see-more-inline-${postId}`);
-  const seeLess = document.getElementById(`see-less-btn-${postId}`);
-
-  box.style.maxHeight = `${text.scrollHeight}px`;
-  text.classList.remove('line-clamp-3');
-  seeMore.classList.add('hidden');
-  seeLess.classList.remove('hidden');
-}
-
-// COLLAPSE POST CONTENT
-function collapsePost(postId) {
-  const box = document.getElementById(`post-box-${postId}`);
-  const text = document.getElementById(`post-text-${postId}`);
-  const seeMore = document.getElementById(`see-more-inline-${postId}`);
-  const seeLess = document.getElementById(`see-less-btn-${postId}`);
-
-  box.style.maxHeight = '6rem';
-  text.classList.add('line-clamp-3');
-  seeMore.classList.remove('hidden');
-  seeLess.classList.add('hidden');
-  
-  // Re-check overflow after collapsing
-  setTimeout(() => {
-    const seeMoreEl = document.getElementById(`see-more-inline-${postId}`);
-    const content = document.getElementById(`post-text-${postId}`);
-    const boxEl = document.getElementById(`post-box-${postId}`);
+  // Open image lightbox with navigation
+  function openLightbox(postId, imageIndex) {
+    currentPostId = postId;
+    currentImageIndex = imageIndex;
     
-    if (content.scrollHeight > boxEl.clientHeight) {
-      seeMoreEl.classList.remove('hidden');
-    } else {
-      seeMoreEl.classList.add('hidden');
+    // Collect all image URLs for this post
+    imageList = [];
+    const postElement = document.querySelector(`.post-card [data-post-id="${postId}"]`).closest('.post-card');
+    const images = postElement.querySelectorAll('img[data-post-id]');
+    
+    images.forEach(img => {
+      imageList.push(img.src);
+    });
+    
+    // Update lightbox content
+    document.getElementById('lightbox-image').src = imageList[currentImageIndex];
+    document.getElementById('image-counter').textContent = `${currentImageIndex + 1}/${imageList.length}`;
+    document.getElementById('image-lightbox').showModal();
+    
+    // Enable/disable navigation buttons
+    updateNavigationButtons();
+  }
+  
+  // Close lightbox
+  function closeLightbox() {
+    document.getElementById('image-lightbox').close();
+  }
+  
+  // Navigate to previous image
+  function prevImage() {
+    if (currentImageIndex > 0) {
+      currentImageIndex--;
+      document.getElementById('lightbox-image').src = imageList[currentImageIndex];
+      document.getElementById('image-counter').textContent = `${currentImageIndex + 1}/${imageList.length}`;
+      updateNavigationButtons();
     }
-  }, 100);
-}
+  }
+  
+  // Navigate to next image
+  function nextImage() {
+    if (currentImageIndex < imageList.length - 1) {
+      currentImageIndex++;
+      document.getElementById('lightbox-image').src = imageList[currentImageIndex];
+      document.getElementById('image-counter').textContent = `${currentImageIndex + 1}/${imageList.length}`;
+      updateNavigationButtons();
+    }
+  }
+  
+  // Update navigation button states
+  function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    
+    prevBtn.classList.toggle('opacity-50', currentImageIndex === 0);
+    prevBtn.classList.toggle('cursor-not-allowed', currentImageIndex === 0);
+    prevBtn.disabled = currentImageIndex === 0;
+    
+    nextBtn.classList.toggle('opacity-50', currentImageIndex === imageList.length - 1);
+    nextBtn.classList.toggle('cursor-not-allowed', currentImageIndex === imageList.length - 1);
+    nextBtn.disabled = currentImageIndex === imageList.length - 1;
+  }
+  
+  // Toggle content expansion
+  function toggleExpand(postId) {
+    const textEl = document.getElementById(`post-text-${postId}`);
+    const seeMoreBtn = document.getElementById(`see-more-${postId}`);
+    const seeLessBtn = document.getElementById(`see-less-${postId}`);
+    
+    if (textEl.classList.contains('line-clamp-3')) {
+      textEl.classList.remove('line-clamp-3');
+      seeMoreBtn.classList.add('hidden');
+      seeLessBtn.classList.remove('hidden');
+    } else {
+      textEl.classList.add('line-clamp-3');
+      seeMoreBtn.classList.remove('hidden');
+      seeLessBtn.classList.add('hidden');
+    }
+  }
+  
+  // Like functionality
+  document.querySelectorAll('.like-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const postId = this.dataset.postId;
+      const heartIcon = document.getElementById(`heart-icon-${postId}`);
+      const likeCount = document.getElementById(`like-count-${postId}`);
+      
+      // Toggle liked state
+      if (heartIcon.classList.contains('text-red-500')) {
+        heartIcon.classList.remove('text-red-500', 'fill-red-500');
+        likeCount.textContent = parseInt(likeCount.textContent) - 1;
+      } else {
+        heartIcon.classList.add('text-red-500', 'fill-red-500');
+        likeCount.textContent = parseInt(likeCount.textContent) + 1;
+        
+        // Add animation effect
+        heartIcon.classList.add('scale-125');
+        setTimeout(() => {
+          heartIcon.classList.remove('scale-125');
+        }, 300);
+      }
+    });
+  });
+  
+  // Initialize content truncation
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.like-btn').forEach(button => {
+      const postId = button.dataset.postId;
+      const heartIcon = document.getElementById(`heart-icon-${postId}`);
+      
+      // Initialize liked state (in a real app, this would come from the server)
+      if (Math.random() > 0.7) {
+        heartIcon.classList.add('text-red-500', 'fill-red-500');
+      }
+    });
+    
+    // Setup lightbox navigation
+    document.getElementById('prev-btn').addEventListener('click', prevImage);
+    document.getElementById('next-btn').addEventListener('click', nextImage);
+    
+    // Keyboard navigation for lightbox
+    document.addEventListener('keydown', (e) => {
+      if (document.getElementById('image-lightbox').open) {
+        if (e.key === 'ArrowLeft') {
+          prevImage();
+        } else if (e.key === 'ArrowRight') {
+          nextImage();
+        } else if (e.key === 'Escape') {
+          closeLightbox();
+        }
+      }
+    });
+  });
 </script>
 
-<!-- Include Hammer.js for touch gestures -->
-<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
-
 <style>
-  /* Custom styles for better transitions and appearance */
-  [id^="post-box-"] {
-    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  .post-card {
+    transition: all 0.3s ease;
   }
   
-  .post-images-grid {
-    transition: max-height 0.3s ease-in-out;
+  .post-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   }
   
-  .see-all-overlay {
-    transition: opacity 0.2s ease-in-out;
+  .heart-icon {
+    transition: all 0.3s ease;
   }
   
-  .extra-img {
-    transition: opacity 0.3s ease-in-out;
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   
-  /* Lightbox styles */
   .modal-box {
-    max-height: calc(100vh - 5em);
+    max-height: 90vh;
   }
   
   #lightbox-image {
-    transition: transform 0.3s ease;
+    max-height: 80vh;
   }
   
-  #lightbox-image.scale-150 {
-    transform: scale(1.5);
+  .btn-group .btn {
+    min-height: 2.5rem;
+    min-width: 2.5rem;
   }
   
-  /* Gradient for see more button */
-  .bg-gradient-to-l {
-    background-image: linear-gradient(to left, var(--tw-gradient-stops));
+  #prev-btn, #next-btn {
+    transition: all 0.2s ease;
   }
   
-  .from-base-100 {
-    --tw-gradient-from: hsl(var(--b1)) var(--tw-gradient-from-position);
-    --tw-gradient-to: hsl(var(--b1)/0) var(--tw-gradient-to-position);
-    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  #prev-btn:disabled, #next-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
   }
   
-  .to-transparent {
-    --tw-gradient-to: transparent var(--tw-gradient-to-position);
+  #prev-btn:hover:not(:disabled), #next-btn:hover:not(:disabled) {
+    transform: translateY(-50%) scale(1.1);
+    background-color: rgba(0, 0, 0, 0.5);
   }
   
-  /* Touch target sizes */
-  @media (max-width: 640px) {
-    .btn-circle {
-      width: 2.5rem;
-      height: 2.5rem;
-    }
+  #image-counter {
+    backdrop-filter: blur(4px);
   }
+  .dropdown {
+  position: relative;
+  z-index: 50; /* higher than the post content or image layers */
+}
+
+.dropdown .dropdown-content {
+  z-index: 50 !important;
+}
+
 </style>
 {% endblock %}

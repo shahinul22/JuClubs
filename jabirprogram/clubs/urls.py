@@ -82,26 +82,26 @@ urlpatterns = [
 
     # Notice URLs
 
-    path('create-notice/', views.create_club_notice, name='create_club_notice'),
+#     path('create-notice/', views.create_club_notice, name='create_club_notice'),
 
     path('<str:club_username>/notices/', 
-         views.ClubNoticeListView.as_view(), 
+         views.club_notice_list, 
          name='club_notice_list'),
     
     path('<str:club_username>/notices/create/', 
-         views.ClubNoticeCreateView.as_view(), 
+         views.create_club_notice, 
          name='club_notice_create'),
     
     path('<str:club_username>/notices/<slug:notice_slug>/', 
-         views.ClubNoticeDetailView.as_view(), 
+         views.club_notice_detail, 
          name='club_notice_detail'),
     
     path('<str:club_username>/notices/<slug:notice_slug>/update/', 
-         views.ClubNoticeUpdateView.as_view(), 
+         views.update_club_notice, 
          name='club_notice_update'),
     
     path('<str:club_username>/notices/<slug:notice_slug>/delete/', 
-         views.ClubNoticeDeleteView.as_view(), 
+         views.delete_club_notice, 
          name='club_notice_delete'),
 
     

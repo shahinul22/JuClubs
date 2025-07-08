@@ -1336,7 +1336,7 @@
         const csrftoken = getCookie('csrftoken');
         
         // FIXED: Use the correct URL name
-        const response = await fetch('{% url "clubs:create_club_notice" %}', {
+        const response = await fetch('{% url "clubs:club_notice_create" club_username=club.username %}', {
           method: 'POST',
           headers: {
             'X-CSRFToken': csrftoken

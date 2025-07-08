@@ -574,186 +574,110 @@ def delete_gallery_photo_view(request, photo_id):
 
 
 
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.utils import timezone
-from .models import Club, ClubNotice
-from .forms import ClubNoticeForm
-
-class ClubNoticeListView(ListView):
-    model = ClubNotice
-    template_name = 'clubs/notice_list.html'
-    context_object_name = 'notices'
-    paginate_by = 10
-
-    def get_queryset(self):
-        # Get club based on username in URL
-        club = Club.objects.get(username=self.kwargs['club_username'])
-        now = timezone.now()
-        
-        # Get active notices (published and not expired)
-        queryset = ClubNotice.objects.filter(
-            club=club,
-            publish_date__lte=now
-        ).exclude(
-            expiration_date__lt=now
-        ).order_by('-is_pinned', '-publish_date')
-        
-        # Filter by notice type if provided
-        notice_type = self.request.GET.get('type')
-        if notice_type:
-            queryset = queryset.filter(notice_type=notice_type)
-        
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['club'] = Club.objects.get(username=self.kwargs['club_username'])
-        context['notice_types'] = dict(ClubNotice.NOTICE_TYPES)
-        return context
-
-class ClubNoticeDetailView(DetailView):
-    model = ClubNotice
-    template_name = 'clubs/notice_detail.html'
-    context_object_name = 'notice'
-    
-    def get_object(self, queryset=None):
-        return ClubNotice.objects.get(
-            club__username=self.kwargs['club_username'],
-            slug=self.kwargs['notice_slug']
-        )
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['club'] = self.object.club
-        return context
-
-class ClubNoticeCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
-    model = ClubNotice
-    form_class = ClubNoticeForm
-    template_name = 'clubs/notice_form.html'
-    
-    def test_func(self):
-        # Check if user has permission to create notices for this club
-        club = Club.objects.get(username=self.kwargs['club_username'])
-        # Implement your own permission logic here
-        # Example: return self.request.user in club.admins.all()
-        return True  # Replace with actual permission check
-    
-    def form_valid(self, form):
-        form.instance.club = Club.objects.get(username=self.kwargs['club_username'])
-        return super().form_valid(form)
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['club'] = Club.objects.get(username=self.kwargs['club_username'])
-        context['action'] = 'Create'
-        return context
-
-class ClubNoticeUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = ClubNotice
-    form_class = ClubNoticeForm
-    template_name = 'clubs/notice_form.html'
-    
-    def test_func(self):
-        notice = self.get_object()
-        # Implement your own permission logic here
-        # Example: return self.request.user in notice.club.admins.all()
-        return True  # Replace with actual permission check
-    
-    def get_object(self, queryset=None):
-        return ClubNotice.objects.get(
-            club__username=self.kwargs['club_username'],
-            slug=self.kwargs['notice_slug']
-        )
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['club'] = self.object.club
-        context['action'] = 'Update'
-        return context
-
-class ClubNoticeDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = ClubNotice
-    template_name = 'clubs/notice_confirm_delete.html'
-    success_url = reverse_lazy('club_notice_list')  # Need to adjust based on club
-    
-    def test_func(self):
-        notice = self.get_object()
-        # Implement your own permission logic here
-        # Example: return self.request.user in notice.club.admins.all()
-        return True  # Replace with actual permission check
-    
-    def get_object(self, queryset=None):
-        return ClubNotice.objects.get(
-            club__username=self.kwargs['club_username'],
-            slug=self.kwargs['notice_slug']
-        )
-    
-    def get_success_url(self):
-        return reverse_lazy('club_notice_list', kwargs={
-            'club_username': self.object.club.username
-        })
-    
-
-
-# clubs/views.py
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
 from .models import Club, ClubNotice
 from django.utils import timezone
 
-# def club_profile_tab_view(request, club_id):
-#     club = get_object_or_404(Club, id=club_id)
-#     # Get latest 5 notices for the club
-#     notices = ClubNotice.objects.filter(club=club).order_by('-is_pinned', '-publish_date')[:5]
+def club_notice_list(request, club_username):
+    club = get_object_or_404(Club, username=club_username)
+    now = timezone.now()
     
-#     return render(request, 'clubs/profile.html', {
-#         'club': club,
-#         'notices': notices,
-#     })
+    queryset = ClubNotice.objects.filter(
+        club=club,
+        publish_date__lte=now
+    ).exclude(
+        expiration_date__lt=now
+    ).order_by('-is_pinned', '-publish_date')
 
-@csrf_exempt
-def create_club_notice(request):
-    if request.method == 'POST':
-        try:
-            # Get the club ID from form data
-            club_id = request.POST.get('club')
-            if not club_id:
-                return JsonResponse({'error': 'Invalid or missing club'}, status=400)
-            
-            # Get the club instance
-            try:
-                club = Club.objects.get(id=club_id)
-            except Club.DoesNotExist:
-                return JsonResponse({'error': 'Club not found'}, status=404)
-            
-            # Create the new notice
-            notice = ClubNotice.objects.create(
-                club=club,
-                title=request.POST.get('title'),
-                content=request.POST.get('content'),
-                notice_type=request.POST.get('notice_type', 'general'),
-                is_pinned=bool(request.POST.get('is_pinned')),
-                is_public=bool(request.POST.get('is_public', True)),
-                publish_date=request.POST.get('publish_date'),
-                expiration_date=request.POST.get('expiration_date') or None
-            )
-            
-            # Handle file upload
-            if 'file' in request.FILES:
-                notice.file = request.FILES['file']
-                notice.save()
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Notice created successfully',
-                'notice_id': notice.id
-            })
-            
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+    notice_type = request.GET.get('type')
+    if notice_type:
+        queryset = queryset.filter(notice_type=notice_type)
+
+    paginator = Paginator(queryset, 10)
+    page = request.GET.get('page')
+    notices = paginator.get_page(page)
+
+    return render(request, 'clubs/notice_list.html', {
+        'notices': notices,
+        'club': club,
+        'notice_types': dict(ClubNotice.NOTICE_TYPES),
+    })
+
+
+def club_notice_detail(request, club_username, notice_slug):
+    notice = get_object_or_404(ClubNotice, club__username=club_username, slug=notice_slug)
+    return render(request, 'clubs/notice_detail.html', {
+        'notice': notice,
+        'club': notice.club,
+    })
+
+from django.contrib.auth.decorators import login_required
+from .forms import ClubNoticeForm
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
+
+def create_club_notice(request, club_username):
+    club = get_object_or_404(Club, username=club_username)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    # Replace with real permission check
+    if not request.user.is_superuser:
+        return render(request, '403.html', status=403)
+
+    if request.method == 'POST':
+        form = ClubNoticeForm(request.POST, request.FILES)
+        if form.is_valid():
+            notice = form.save(commit=False)
+            notice.club = club
+            notice.save()
+            return HttpResponseRedirect(reverse('clubs:club_notice_list', kwargs={'club_username': club.username}))
+    else:
+        form = ClubNoticeForm()
+
+    return render(request, 'clubs/notice_form.html', {
+        'form': form,
+        'club': club,
+        'action': 'Create',
+    })
+
+
+@login_required
+def update_club_notice(request, club_username, notice_slug):
+    notice = get_object_or_404(ClubNotice, club__username=club_username, slug=notice_slug)
+    
+    # Replace with real permission check
+    if not request.user.is_superuser:
+        return render(request, '403.html', status=403)
+
+    if request.method == 'POST':
+        form = ClubNoticeForm(request.POST, request.FILES, instance=notice)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('clubs:club_notice_detail', kwargs={
+                'club_username': club_username,
+                'notice_slug': notice.slug
+            }))
+    else:
+        form = ClubNoticeForm(instance=notice)
+
+    return render(request, 'clubs/notice_form.html', {
+        'form': form,
+        'club': notice.club,
+        'action': 'Update',
+    })
+
+
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def delete_club_notice(request, club_username, notice_slug):
+    notice = get_object_or_404(ClubNotice, club__username=club_username, slug=notice_slug)
+
+    # Replace with real permission check
+    if not request.user.is_superuser:
+        return render(request, '403.html', status=403)
+
+    notice.delete()
+    return HttpResponseRedirect(reverse('clubs:club_notice_list', kwargs={'club_username': club_username}))

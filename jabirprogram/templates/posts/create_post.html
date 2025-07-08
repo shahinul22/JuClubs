@@ -4,65 +4,120 @@
 {% block title %}{{ edit|yesno:"Edit Post,Create Post" }} | JU Clubs{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto mt-10 px-4">
-  <div class="card bg-base-100 shadow-lg border">
-    <div class="card-body">
-      <h2 class="text-xl font-bold mb-4">
-        {% if edit %}Edit Post{% else %}Create a Post{% endif %}
-      </h2>
+<div class="max-w-2xl mx-auto mt-6 px-4">
+  <div class="card bg-white shadow-lg rounded-lg border border-gray-200">
+    <div class="card-body p-0">
+      <div class="border-b border-gray-200 p-4">
+        <h2 class="text-xl font-bold text-gray-800">
+          {% if edit %}Edit Post{% else %}Create Post{% endif %}
+        </h2>
+      </div>
 
-      <form method="post" enctype="multipart/form-data" class="space-y-4">
+      <form method="post" enctype="multipart/form-data" class="space-y-4 p-4">
         {% csrf_token %}
 
-        <!-- Post Content -->
-        <div>
-          {{ form.content.label_tag }}
-          {{ form.content|add_class:"textarea textarea-bordered w-full" }}
-          {% for error in form.content.errors %}
-            <p class="text-red-500 text-sm">{{ error }}</p>
-          {% endfor %}
+        <!-- User profile and post content -->
+<div class="flex items-start space-x-3">
+  <div class="flex-shrink-0">
+    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+      <!-- Profile image or initials -->
+      {% if post_user %}
+  {% if post_user.profile_picture %}
+    <img src="{{ post_user.profile_picture.url }}" ... >
+  {% else %}
+    <span>{{ post_user.username|first|upper }}</span>
+  {% endif %}
+{% elif post_club %}
+  {% if post_club.logo %}
+    <img src="{{ post_club.logo.url }}" ... >
+  {% else %}
+    <span>{{ post_club.name|first|upper }}</span>
+  {% endif %}
+{% elif is_superadmin %}
+  <span class="text-gray-500">A</span>
+{% endif %}
+
+    </div>
+  </div>
+
+  <!-- Add the name right here -->
+  <div class="flex-1">
+    <div class="font-medium text-gray-800">
+      {% if post_user %}
+        {{ post_user.username }}
+      {% elif post_club %}
+        {{ post_club.name }}
+      {% elif is_superadmin %}
+        Admin
+      {% endif %}
+    </div>
+    
+    <div class="mt-2">
+      {{ form.content|add_class:"w-full border-0 p-4 focus:ring-0 resize-none text-gray-700 placeholder-gray-400 min-h-[100px] text-lg"|attr:"placeholder:What's on your mind?"|attr:"rows:3" }}
+      {% for error in form.content.errors %}
+        <p class="text-red-500 text-sm mt-1">{{ error }}</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+
+        <!-- Image preview area -->
+        <div id="image-preview" class="grid grid-cols-2 gap-2 hidden"></div>
+
+        <!-- Post options -->
+        <div class="border border-gray-200 rounded-lg p-3">
+          <div class="text-sm font-medium text-gray-700 mb-2">Add to your post</div>
+          <div class="flex space-x-4">
+            <!-- Photo upload -->
+            <label for="id_images" class="flex items-center space-x-1 text-gray-600 hover:bg-gray-100 rounded-lg p-2 cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm">Photo</span>
+              <input type="file" name="images" id="id_images" multiple class="hidden" accept="image/*" />
+            </label>
+
+            <!-- Location -->
+            <div class="relative flex items-center space-x-1 text-gray-600 hover:bg-gray-100 rounded-lg p-2 cursor-pointer" id="location-toggle">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span class="text-sm">Location</span>
+            </div>
+          </div>
+
+          <!-- Location dropdown (hidden by default) -->
+          <div id="location-dropdown" class="mt-3 hidden">
+            <div class="relative">
+              <input
+                type="text"
+                id="location-search"
+                placeholder="Search for a location..."
+                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autocomplete="off"
+              />
+              <ul id="location-suggestions" class="absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-lg mt-1 hidden max-h-60 overflow-y-auto"></ul>
+            </div>
+            
+            <div class="mt-2 flex items-center">
+              <button type="button" id="get-location-btn" class="text-blue-500 text-sm font-medium flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Use current location
+              </button>
+            </div>
+            
+            {{ form.location|add_class:"hidden" }}
+          </div>
         </div>
 
-        <!-- Images Upload -->
-        <div>
-          <label for="id_images" class="block font-semibold mb-1">Images</label>
-          <input type="file" name="images" id="id_images" multiple class="file-input file-input-bordered w-full" />
-        </div>
-
-        <!-- Location Autocomplete -->
-        <div class="relative">
-          <label for="location-search" class="block font-semibold mb-1">Search Location</label>
-          <input
-            type="text"
-            id="location-search"
-            placeholder="Start typing location..."
-            class="input input-bordered w-full"
-            autocomplete="off"
-          />
-          <ul id="location-suggestions"
-              class="absolute z-50 w-full bg-white border border-gray-300 rounded shadow mt-1 hidden max-h-60 overflow-y-auto"></ul>
-        </div>
-
-        <!-- Final Location Field (Hidden) -->
-        <div>
-          {{ form.location.label_tag }}
-          {{ form.location|add_class:"input input-bordered w-full mt-2" }}
-          {% for error in form.location.errors %}
-            <p class="text-red-500 text-sm">{{ error }}</p>
-          {% endfor %}
-        </div>
-
-        <!-- Use My Location -->
-        <div>
-          <button type="button" id="get-location-btn" class="btn btn-outline btn-sm mt-2">
-            📍 Use My Location
-          </button>
-        </div>
-
-        <!-- Submit -->
-        <div class="text-right mt-4">
-          <button type="submit" class="btn btn-primary">
-            {% if edit %}Update{% else %}Post{% endif %}
+        <!-- Submit button -->
+        <div class="pt-2">
+          <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+            {% if edit %}Update Post{% else %}Post{% endif %}
           </button>
         </div>
       </form>
@@ -75,9 +130,44 @@
     const searchInput = document.getElementById('location-search');
     const locationInput = document.querySelector('input[name="location"]');
     const suggestions = document.getElementById('location-suggestions');
+    const locationToggle = document.getElementById('location-toggle');
+    const locationDropdown = document.getElementById('location-dropdown');
+    const imageInput = document.getElementById('id_images');
+    const imagePreview = document.getElementById('image-preview');
 
+    // Toggle location dropdown
+    locationToggle.addEventListener('click', () => {
+      locationDropdown.classList.toggle('hidden');
+    });
+
+    // Image preview functionality
+    imageInput.addEventListener('change', function() {
+      imagePreview.innerHTML = '';
+      imagePreview.classList.add('hidden');
+      
+      if (this.files && this.files.length > 0) {
+        imagePreview.classList.remove('hidden');
+        
+        for (let i = 0; i < Math.min(this.files.length, 4); i++) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'relative';
+            
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'w-full h-40 object-cover rounded-lg';
+            
+            imgContainer.appendChild(img);
+            imagePreview.appendChild(imgContainer);
+          }
+          reader.readAsDataURL(this.files[i]);
+        }
+      }
+    });
+
+    // Location search with debounce
     let debounceTimer;
-
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.trim();
       clearTimeout(debounceTimer);
@@ -89,10 +179,15 @@
       }
 
       debounceTimer = setTimeout(() => {
-        fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=10`)
+        fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`)
           .then(res => res.json())
           .then(data => {
             suggestions.innerHTML = '';
+             const items = data.features.slice(0, 5);  // ensure only 10(5)
+             if (items.length === 0) {
+                suggestions.classList.add('hidden');
+                return;
+            }
             data.features.forEach(loc => {
               const name = loc.properties.name;
               const city = loc.properties.city || '';
@@ -101,7 +196,7 @@
 
               const li = document.createElement('li');
               li.textContent = full;
-              li.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+              li.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm';
               li.addEventListener('click', () => {
                 searchInput.value = full;
                 locationInput.value = full;
@@ -116,9 +211,10 @@
               suggestions.classList.add('hidden');
             }
           });
-      }, 300);
+      }, 100);
     });
 
+    // Click outside to close suggestions
     document.addEventListener('click', (e) => {
       if (!suggestions.contains(e.target) && e.target !== searchInput) {
         suggestions.classList.add('hidden');
@@ -127,7 +223,10 @@
 
     // Use My Location
     document.getElementById('get-location-btn').addEventListener('click', () => {
-      if (!navigator.geolocation) return alert("Geolocation not supported");
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser");
+        return;
+      }
 
       locationInput.value = 'Locating...';
       navigator.geolocation.getCurrentPosition(
@@ -145,505 +244,33 @@
             })
             .catch(() => {
               locationInput.value = `Lat: ${lat}, Lon: ${lon}`;
+              searchInput.value = `Your current location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
             });
         },
         () => {
           locationInput.value = '';
-          alert('Could not get your location.');
+          alert('Could not get your location. Please make sure location services are enabled.');
         }
       );
     });
   });
 </script>
+
+<style>
+  /* Custom scrollbar for location suggestions */
+  #location-suggestions::-webkit-scrollbar {
+    width: 8px;
+  }
+  #location-suggestions::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 0 0 4px 4px;
+  }
+  #location-suggestions::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+  }
+  #location-suggestions::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+</style>
 {% endblock %}
-
-
-{% comment %} 
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Post | JU Clubs</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.7.3/dist/full.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
-            min-height: 100vh;
-        }
-        
-        .card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        
-        .suggestion-item {
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        
-        .suggestion-item:hover {
-            background-color: #f0f7ff;
-            transform: translateX(3px);
-        }
-        
-        .location-pill {
-            display: inline-flex;
-            align-items: center;
-            background-color: #e6f7ff;
-            border-radius: 20px;
-            padding: 4px 12px;
-            margin-top: 8px;
-            margin-right: 8px;
-            font-size: 0.875rem;
-            color: #0284c7;
-        }
-        
-        .location-pill i {
-            margin-left: 8px;
-            cursor: pointer;
-        }
-        
-        .spinner {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0px rgba(2, 132, 199, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(2, 132, 199, 0); }
-            100% { box-shadow: 0 0 0 0px rgba(2, 132, 199, 0); }
-        }
-    </style>
-</head>
-<body class="py-8">
-    <div class="max-w-xl mx-auto px-4">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-sky-800 mb-2">
-                <i class="fas fa-users mr-2"></i>JU Clubs
-            </h1>
-            <p class="text-gray-600">Connect with student organizations at Jadavpur University</p>
-        </div>
-        
-        <!-- Card -->
-        <div class="card bg-base-100 shadow-xl border border-gray-100 overflow-hidden">
-            <div class="card-body">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">
-                    <i class="fas fa-pen-alt mr-2 text-sky-600"></i>Create a New Post
-                </h2>
-                <p class="text-gray-600 mb-6">Share updates, events, or announcements with your club members</p>
-                
-                <!-- Form -->
-                <form class="space-y-6">
-                    <!-- Content -->
-                    <div>
-                        <label class="block font-semibold text-gray-700 mb-2">
-                            <i class="fas fa-comment-dots mr-2 text-sky-600"></i>Post Content
-                        </label>
-                        <textarea 
-                            class="textarea textarea-bordered w-full h-32" 
-                            placeholder="What's happening in your club?"></textarea>
-                    </div>
-                    
-                    <!-- Image Upload -->
-                    <div>
-                        <label class="block font-semibold text-gray-700 mb-2">
-                            <i class="fas fa-images mr-2 text-sky-600"></i>Add Images
-                        </label>
-                        <div class="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-                            <div class="text-center">
-                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
-                                <p class="text-gray-500">Click to upload or drag & drop</p>
-                                <p class="text-sm text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</p>
-                            </div>
-                            <input type="file" class="hidden" multiple>
-                        </div>
-                    </div>
-                    
-                    <!-- Location Section -->
-                    <div class="border-t border-gray-200 pt-6">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">
-                            <i class="fas fa-map-marker-alt mr-2 text-sky-600"></i>Add Location
-                        </h3>
-                        
-                        <!-- Location Search -->
-                        <div class="relative mb-4">
-                            <label class="block font-semibold text-gray-700 mb-2">
-                                Search Location
-                            </label>
-                            <div class="relative">
-                                <input
-                                    type="text"
-                                    id="location-search"
-                                    placeholder="Type a location (e.g. Jadavpur University, Kolkata)"
-                                    class="input input-bordered w-full pl-10"
-                                    autocomplete="off"
-                                />
-                                <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
-                            </div>
-                            
-                            <!-- Suggestions Box -->
-                            <div id="location-suggestions" class="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden max-h-60 overflow-y-auto">
-                                <div id="suggestions-header" class="border-b border-gray-200 p-3">
-                                    <h4 class="font-semibold text-gray-700 flex items-center">
-                                        <i class="fas fa-map-pin mr-2 text-sky-600"></i>Suggested Locations
-                                    </h4>
-                                </div>
-                                <div id="suggestions-content" class="p-1"></div>
-                                <div id="suggestions-footer" class="border-t border-gray-200 p-3 text-sm text-gray-500">
-                                    <i class="fas fa-info-circle mr-2"></i>Powered by OpenStreetMap
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Selected Locations -->
-                        <div id="selected-locations" class="mb-4">
-                            <label class="block font-semibold text-gray-700 mb-2">
-                                Selected Locations
-                            </label>
-                            <div id="location-pills" class="flex flex-wrap gap-2">
-                                <!-- Location pills will appear here -->
-                            </div>
-                        </div>
-                        
-                        <!-- Use My Location -->
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <button 
-                                type="button" 
-                                id="get-location-btn" 
-                                class="btn btn-outline btn-info flex-1 pulse"
-                            >
-                                <i class="fas fa-location-crosshairs mr-2"></i>Use My Current Location
-                            </button>
-                            
-                            <button 
-                                type="button" 
-                                id="clear-locations-btn" 
-                                class="btn btn-outline btn-error flex-1"
-                            >
-                                <i class="fas fa-trash mr-2"></i>Clear Locations
-                            </button>
-                        </div>
-                        
-                        <!-- Location Status -->
-                        <div id="location-status" class="mt-4 text-sm text-gray-600 flex items-center hidden">
-                            <i class="fas fa-info-circle mr-2 text-sky-600"></i>
-                            <span>No location selected. Your post will not be tagged with a location.</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Submit Button -->
-                    <div class="border-t border-gray-200 pt-6 flex justify-end">
-                        <button type="submit" class="btn btn-primary px-8">
-                            <i class="fas fa-paper-plane mr-2"></i>Publish Post
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Demo Note -->
-        <div class="mt-8 text-center text-gray-500 text-sm">
-            <p>This is a demo implementation for enhanced location search functionality. In a real application, this would connect to your backend.</p>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.getElementById('location-search');
-            const suggestionBox = document.getElementById('location-suggestions');
-            const suggestionsContent = document.getElementById('suggestions-content');
-            const locationPills = document.getElementById('location-pills');
-            const getLocationBtn = document.getElementById('get-location-btn');
-            const clearLocationsBtn = document.getElementById('clear-locations-btn');
-            const locationStatus = document.getElementById('location-status');
-            
-            let debounceTimeout;
-            let controller = null;
-            let selectedLocations = [];
-            
-            // Sample locations for demonstration
-            const demoLocations = [
-                { display_name: "Jadavpur University, Kolkata", lat: "22.4997", lon: "88.3720" },
-                { display_name: "Jadavpur University Main Campus, Kolkata", lat: "22.4997", lon: "88.3720" },
-                { display_name: "Jadavpur University Salt Lake Campus", lat: "22.5667", lon: "88.4167" },
-                { display_name: "JU Technology Gymkhana", lat: "22.5005", lon: "88.3715" },
-                { display_name: "JU Central Library", lat: "22.4990", lon: "88.3712" },
-                { display_name: "JU Football Ground", lat: "22.5012", lon: "88.3701" },
-                { display_name: "Jadavpur Police Station", lat: "22.4925", lon: "88.3706" },
-                { display_name: "Jadavpur Market", lat: "22.4945", lon: "88.3693" },
-                { display_name: "Jadavpur 8B Bus Stand", lat: "22.4972", lon: "88.3688" }
-            ];
-            
-            // Display selected locations
-            function renderLocationPills() {
-                locationPills.innerHTML = '';
-                
-                if (selectedLocations.length === 0) {
-                    locationStatus.classList.remove('hidden');
-                    return;
-                }
-                
-                locationStatus.classList.add('hidden');
-                
-                selectedLocations.forEach((location, index) => {
-                    const pill = document.createElement('div');
-                    pill.className = 'location-pill';
-                    pill.innerHTML = `
-                        <i class="fas fa-map-marker-alt text-sky-600"></i>
-                        <span>${location.display_name}</span>
-                        <i class="fas fa-times text-gray-500 hover:text-red-500" data-index="${index}"></i>
-                    `;
-                    locationPills.appendChild(pill);
-                });
-                
-                // Add event listeners to remove buttons
-                document.querySelectorAll('#location-pills .fa-times').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const index = parseInt(this.getAttribute('data-index'));
-                        selectedLocations.splice(index, 1);
-                        renderLocationPills();
-                    });
-                });
-            }
-            
-            // Initial render
-            renderLocationPills();
-            
-            // Fetch location suggestions (simulated for demo)
-            function fetchLocationSuggestions(query) {
-                return new Promise((resolve) => {
-                    // Simulate network delay
-                    setTimeout(() => {
-                        if (!query) {
-                            resolve([]);
-                            return;
-                        }
-                        
-                        // Filter demo locations based on query
-                        const results = demoLocations.filter(loc => 
-                            loc.display_name.toLowerCase().includes(query.toLowerCase())
-                        );
-                        
-                        resolve(results);
-                    }, 500);
-                });
-            }
-            
-            // Show loading state in suggestions
-            function showLoadingSuggestions() {
-                suggestionsContent.innerHTML = `
-                    <div class="flex items-center justify-center p-6">
-                        <div class="spinner">
-                            <i class="fas fa-spinner text-sky-600 text-xl"></i>
-                        </div>
-                        <span class="ml-3 text-gray-600">Searching locations...</span>
-                    </div>
-                `;
-                suggestionBox.classList.remove('hidden');
-            }
-            
-            // Show results in suggestions
-            function showSuggestions(results) {
-                suggestionsContent.innerHTML = '';
-                
-                if (results.length === 0) {
-                    suggestionsContent.innerHTML = `
-                        <div class="p-4 text-center text-gray-500">
-                            <i class="fas fa-map-marker-slash text-xl mb-2"></i>
-                            <p>No locations found. Try a different search term.</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                results.forEach(place => {
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item p-3 hover:bg-gray-50 flex items-start';
-                    item.innerHTML = `
-                        <div class="mr-3 mt-1 text-sky-600">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div>
-                            <div class="font-medium">${place.display_name}</div>
-                            <div class="text-xs text-gray-500 mt-1">Lat: ${place.lat}, Lon: ${place.lon}</div>
-                        </div>
-                    `;
-                    
-                    item.addEventListener('click', () => {
-                        // Add to selected locations if not already added
-                        const exists = selectedLocations.some(loc => 
-                            loc.display_name === place.display_name
-                        );
-                        
-                        if (!exists) {
-                            selectedLocations.push(place);
-                            renderLocationPills();
-                        }
-                        
-                        searchInput.value = '';
-                        suggestionBox.classList.add('hidden');
-                    });
-                    
-                    suggestionsContent.appendChild(item);
-                });
-            }
-            
-            // Live search
-            searchInput.addEventListener('input', function () {
-                const query = searchInput.value.trim();
-                clearTimeout(debounceTimeout);
-                
-                // Cancel previous request if any
-                if (controller) {
-                    controller.abort();
-                }
-                
-                // Hide suggestions if query is empty
-                if (query.length === 0) {
-                    suggestionBox.classList.add('hidden');
-                    return;
-                }
-                
-                // Show loading state
-                showLoadingSuggestions();
-                
-                // Set up debounce
-                debounceTimeout = setTimeout(() => {
-                    controller = new AbortController();
-                    
-                    fetchLocationSuggestions(query)
-                        .then(data => {
-                            showSuggestions(data);
-                        })
-                        .catch(err => {
-                            if (err.name === 'AbortError') return;
-                            
-                            suggestionsContent.innerHTML = `
-                                <div class="p-4 text-center text-red-500">
-                                    <i class="fas fa-exclamation-circle text-xl mb-2"></i>
-                                    <p>Failed to load locations. Please try again.</p>
-                                </div>
-                            `;
-                        });
-                }, 300);
-            });
-            
-            // Hide suggestions when clicking outside
-            document.addEventListener('click', function (e) {
-                if (!suggestionBox.contains(e.target) && e.target !== searchInput) {
-                    suggestionBox.classList.add('hidden');
-                }
-            });
-            
-            // "Use My Location" button
-            getLocationBtn.addEventListener('click', () => {
-                // Change button to loading state
-                const originalHTML = getLocationBtn.innerHTML;
-                getLocationBtn.innerHTML = `
-                    <i class="fas fa-spinner spinner mr-2"></i>Detecting location...
-                `;
-                getLocationBtn.disabled = true;
-                
-                // Simulate location detection
-                setTimeout(() => {
-                    // Add Jadavpur University as detected location
-                    selectedLocations.push({
-                        display_name: "Your Current Location: Jadavpur University",
-                        lat: "22.4997",
-                        lon: "88.3720"
-                    });
-                    
-                    renderLocationPills();
-                    
-                    // Reset button
-                    getLocationBtn.innerHTML = originalHTML;
-                    getLocationBtn.disabled = false;
-                    
-                    // Show notification
-                    const notification = document.createElement('div');
-                    notification.className = 'toast toast-top toast-center';
-                    notification.innerHTML = `
-                        <div class="alert alert-success shadow-lg">
-                            <div>
-                                <i class="fas fa-check-circle"></i>
-                                <span>Location detected successfully!</span>
-                            </div>
-                        </div>
-                    `;
-                    document.body.appendChild(notification);
-                    
-                    setTimeout(() => {
-                        notification.remove();
-                    }, 3000);
-                }, 1500);
-            });
-            
-            // Clear locations button
-            clearLocationsBtn.addEventListener('click', () => {
-                selectedLocations = [];
-                renderLocationPills();
-                
-                // Show notification
-                const notification = document.createElement('div');
-                notification.className = 'toast toast-top toast-center';
-                notification.innerHTML = `
-                    <div class="alert alert-info shadow-lg">
-                        <div>
-                            <i class="fas fa-info-circle"></i>
-                            <span>All locations cleared</span>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
-            });
-            
-            // Form submission
-            document.querySelector('form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                
-                // Show success notification
-                const notification = document.createElement('div');
-                notification.className = 'toast toast-top toast-center';
-                notification.innerHTML = `
-                    <div class="alert alert-success shadow-lg">
-                        <div>
-                            <i class="fas fa-check-circle"></i>
-                            <span>Post created successfully!</span>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(notification);
-                
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
-            });
-        });
-    </script>
-</body>
-</html>
-{% endcomment %}

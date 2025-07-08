@@ -79,13 +79,40 @@ def create_post(request):
     else:
         form = PostForm()
 
-    return render(request, 'posts/create_post.html', {'form': form})
+    return render(request, 'posts/create_post.html', {
+        'form': form,
+        'post_user': post_user,
+        'post_club': post_club,
+        'is_superadmin': is_superadmin,
+    })
 
 
 
-@user_login_required
+
+
+
+from django.http import HttpResponseForbidden
+
 def edit_post(request, post_id):
-    post = get_object_or_404(Post, id=post_id, user=request.user)
+    post = get_object_or_404(Post, id=post_id)
+
+    current_user = request.user if request.user.is_authenticated else None
+    current_club = None
+    is_superadmin = False
+
+    if request.session.get('club_id'):
+        try:
+            current_club = Club.objects.get(id=request.session['club_id'])
+        except Club.DoesNotExist:
+            current_club = None
+
+    if request.user.is_authenticated and request.user.is_superuser:
+        is_superadmin = True
+
+    # Permission check
+    if post.user != current_user and post.club != current_club and not is_superadmin:
+        return HttpResponseForbidden("You do not have permission to edit this post.")
+
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
@@ -93,15 +120,39 @@ def edit_post(request, post_id):
             return redirect('posts:list')
     else:
         form = PostForm(instance=post)
+
     return render(request, 'posts/post_form.html', {'form': form, 'edit': True})
 
-@user_login_required
+
+
+from django.http import HttpResponseForbidden
+
 def delete_post(request, post_id):
-    post = get_object_or_404(Post, id=post_id, user=request.user)
+    post = get_object_or_404(Post, id=post_id)
+
+    current_user = request.user if request.user.is_authenticated else None
+    current_club = None
+    is_superadmin = False
+
+    if request.session.get('club_id'):
+        try:
+            current_club = Club.objects.get(id=request.session['club_id'])
+        except Club.DoesNotExist:
+            current_club = None
+
+    if request.user.is_authenticated and request.user.is_superuser:
+        is_superadmin = True
+
+    # Permission check
+    if post.user != current_user and post.club != current_club and not is_superadmin:
+        return HttpResponseForbidden("You do not have permission to delete this post.")
+
     if request.method == 'POST':
         post.delete()
         return redirect('posts:list')
+
     return render(request, 'posts/post_confirm_delete.html', {'post': post})
+
 
 def post_list_view(request):
     user_id = request.session.get('user_id')
@@ -111,6 +162,14 @@ def post_list_view(request):
             current_user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             current_user = None
+
+    club_id = request.session.get('club_id')
+    current_club = None
+    if club_id:
+        try:
+            current_club = Club.objects.get(id=club_id)
+        except Club.DoesNotExist:
+            current_club = None
 
     # Filters
     filter_type = request.GET.get('filter')
@@ -147,6 +206,8 @@ def post_list_view(request):
             'page_obj': page_obj,
             'liked_post_ids': set(),
             'user': current_user,
+            'current_user': current_user,
+            'current_club': current_club,
         }, request=request)
         return JsonResponse({'html': html, 'has_next': page_obj.has_next()})
 
@@ -161,6 +222,8 @@ def post_list_view(request):
         'page_obj': page_obj,
         'liked_post_ids': liked_post_ids,
         'user': current_user,
+        'current_user': current_user,
+        'current_club': current_club,
     })
 
 @user_login_required

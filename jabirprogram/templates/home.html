@@ -68,48 +68,98 @@
 </section>
 
 <!-- Featured Clubs Section -->
-<section id="featured-clubs" class="py-12">
-  <div class="text-center mb-12">
-    <h2 class="text-3xl md:text-4xl font-bold mb-4">Featured Student Clubs</h2>
-    <p class="text-gray-600 max-w-2xl mx-auto">
-      Discover the most active and popular student organizations at Jahangirnagar University
-    </p>
-  </div>
+<section id="featured-clubs" class="py-16 bg-gray-50">
+  <div class="container mx-auto px-4">
+    <!-- Section Header -->
+    <div class="text-center mb-14 max-w-3xl mx-auto">
+      <h2 class="text-4xl font-bold text-gray-900 mb-4">Featured Student Clubs</h2>
+      <p class="text-lg text-gray-600">
+        Discover the most active and popular student organizations at Jahangirnagar University
+      </p>
+    </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-    {% for club in featured_clubs %}
-    <div class="card card-hover bg-base-100 shadow-xl overflow-hidden">
-      <figure class="h-48 flex items-center justify-center {% if club.cover_photo %} bg-cover bg-center {% else %} bg-gradient-to-r from-blue-500 to-indigo-600 {% endif %}"
-        {% if club.cover_photo %}style="background-image: url('{{ club.cover_photo.url }}');"{% endif %}>
-        {% if not club.cover_photo %}
-        <i class="fa-solid fa-users text-white text-6xl"></i>
-        {% endif %}
-      </figure>
-      <div class="card-body">
-        <h3 class="card-title">{{ club.name }}</h3>
-        <p>{{ club.description|default:"No description available."|truncatewords:25 }}</p>
-        <div class="card-actions justify-between mt-4">
-          <div class="badge badge-primary gap-2">
-            <i class="fa-solid fa-users"></i>
-            {% if club.members.count %} 
-              {{ club.members.count }} Members 
-            {% else %} 
-              Members info not available 
+    <!-- Clubs Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for club in featured_clubs %}
+      <div class="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <!-- Cover Image -->
+        <div class="relative h-48 overflow-hidden">
+          {% if club.cover_photo %}
+            <img src="{{ club.cover_photo.url }}" alt="{{ club.name }} cover" class="w-full h-full object-cover">
+          {% else %}
+            <div class="w-full h-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
+              <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+            </div>
+          {% endif %}
+          
+          <!-- Club Logo -->
+          <div class="absolute -bottom-2 left-6 w-16 h-16 rounded-full border-4 border-purple-400 bg-white overflow-hidden shadow-md">
+            {% if club.logo %}
+              <img src="{{ club.logo.url }}" alt="{{ club.name }} logo" class="w-full h-full object-cover">
+            {% else %}
+              <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+              </div>
             {% endif %}
           </div>
-          <a href="{% url 'clubs:club_profile_about' %}?club_id={{ club.id }}">View Club</a>
+        </div>
+
+        <!-- Club Content -->
+        <div class="pt-8 pb-6 px-6">
+          <h3 class="text-xl font-bold text-gray-900 mb-2">{{ club.name }}</h3>
+          <p class="text-gray-600 mb-4 line-clamp-2">
+            {{ club.description|default:"No description available." }}
+          </p>
+          
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+              <span class="text-sm text-gray-500">
+                {% if club.members.count %} 
+                  {{ club.members.count }} Members
+                {% else %} 
+                  Members info not available
+                {% endif %}
+              </span>
+            </div>
+            
+            <a href="{% url 'clubs:club_profile_about' %}?club_id={{ club.id }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center">
+              View Club
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </a>
+          </div>
         </div>
       </div>
+      {% empty %}
+      <div class="col-span-3 py-12 text-center">
+        <div class="max-w-md mx-auto">
+          <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <h3 class="mt-4 text-lg font-medium text-gray-900">No featured clubs</h3>
+          <p class="mt-1 text-gray-500">There are currently no featured clubs to display.</p>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    {% empty %}
-    <p class="text-center col-span-3 text-gray-500">No featured clubs available at the moment.</p>
-    {% endfor %}
-  </div>
 
-  <div class="text-center mt-10">
-    <a href="#" class="btn btn-outline btn-primary px-8">
-      <i class="fa-solid fa-list mr-2"></i> View All Clubs
-    </a>
+    <!-- View All Button -->
+    <div class="text-center mt-14">
+      <a href="#" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+        <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        View All Clubs
+      </a>
+    </div>
   </div>
 </section>
 
